@@ -220,14 +220,9 @@ tr:hover { background: rgba(0, 212, 255, 0.04); }
 .team-cell { display: flex; align-items: center; gap: 8px; }
 .team-cell img { width: 22px; height: 16px; object-fit: cover; border-radius: 2px; }
 .pts-cell { color: #ffd700; font-weight: bold; }
-/* 小组赛出线状态 */
-tr.qualified { background: rgba(0, 200, 100, 0.10); border-left: 3px solid #2ecc71; }
-tr.qualified .team-cell span { color: #2ecc71; font-weight: 600; }
-tr.qualified .pts-cell { color: #2ecc71; }
-tr.eliminated { background: rgba(120, 120, 120, 0.10); border-left: 3px solid #555; opacity: 0.55; }
-tr.eliminated .team-cell span { color: #8a96a8; }
-.qualify-tag { display: inline-block; background: #2ecc71; color: #0f1419; font-size: 10px; padding: 1px 6px; border-radius: 3px; margin-left: 6px; font-weight: 700; }
-.elim-tag { display: inline-block; background: #555; color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 3px; margin-left: 6px; font-weight: 600; }
+/* 小组赛前 2 名直接出线 */
+tr.top2 td { color: #2ecc71; font-weight: 600; }
+tr.top2 .pts-cell { color: #2ecc71; }
 .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
 .game-card { background: #1a2332; border-radius: 8px; padding: 14px; border: 1px solid #2a3445; position: relative; transition: all 0.2s; }
 .game-card:hover { border-color: #00d4ff; transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0, 212, 255, 0.1); }
@@ -780,23 +775,6 @@ function renderGroups() {
       if (parseInt(b.gd) !== parseInt(a.gd)) return parseInt(b.gd) - parseInt(a.gd);
       return parseInt(b.gf) - parseInt(a.gf);
     });
-    // 出线判定: 12 组前 2 名直接晋级，第 3 名进入 8 个最佳第三名比较 (跨组)
-    // 简化：mp=3 且 idx<=1 → 已锁定出线; mp<3 但剩余最大分 < 当前第 2 名分 → 数学淘汰
-    const secondPts = parseInt(sorted[1]?.pts || 0);
-    sorted.forEach((t, idx) => {
-      const remaining = Math.max(0, 3 - parseInt(t.mp));
-      const maxPts = parseInt(t.pts) + remaining * 3;
-      if (parseInt(t.mp) === 3 && idx <= 1) {
-        t._qualify = 'qualified';
-      } else if (remaining > 0 && maxPts < secondPts) {
-        t._qualify = 'eliminated';
-      } else if (parseInt(t.mp) === 3 && idx > 1) {
-        // mp=3 且 > 第 2 名：直接淘汰（不算最佳第 3 名，仅作分组内）
-        t._qualify = 'eliminated';
-      } else {
-        t._qualify = 'pending';
-      }
-    });
     html += `<div class="group-card">
       <h3>组 ${g.name} <span class="badge">${sorted.length} 队</span></h3>
       <table>
@@ -804,15 +782,12 @@ function renderGroups() {
         <tbody>`;
     sorted.forEach((t, idx) => {
       const team = teamMap[t.team_id] || { name_en: 'T' + t.team_id, name_cn: 'T' + t.team_id, flag: '' };
-      const qualifyClass = t._qualify === 'qualified' ? 'qualified' : t._qualify === 'eliminated' ? 'eliminated' : '';
-      const qualifyTag = t._qualify === 'qualified' ? '<span class="qualify-tag">✓ 出线</span>'
-                       : t._qualify === 'eliminated' ? '<span class="elim-tag">✗ 出局</span>'
-                       : '';
-      html += `<tr class="${qualifyClass}">
+      const rowCls = idx <= 1 ? 'top2' : '';
+      html += `<tr class="${rowCls}">
         <td class="num">${idx + 1}</td>
         <td><div class="team-cell">
           ${team.flag ? `<img src="${team.flag}" onerror="this.style.display='none'">` : ''}
-          <span>${team.name_cn || team.name_en}${qualifyTag}</span>
+          <span>${team.name_cn || team.name_en}</span>
         </div></td>
         <td class="num">${t.mp}</td><td class="num">${t.w}</td><td class="num">${t.d}</td>
         <td class="num">${t.l}</td><td class="num">${t.gf}</td><td class="num">${t.ga}</td>
