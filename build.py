@@ -1,8 +1,133 @@
 """生成 index.html — 2026 世界杯模拟盘单文件应用。"""
 import json
+import math
+import os
+import time
+import urllib.request
 from pathlib import Path
 
 proj = Path(r'D:\VSCodeProject\worldcup2026-bet')
+
+# ==== 赔率模型：Dixon-Coles 双泊松 + ELO + 庄家 margin ====
+# 数据源: eloratings.net（公开 World Football Elo Ratings）
+# 缓存路径: ~/.hermes/cache/world_elo.tsv（7 天自动刷新）
+ELO_CACHE = Path(os.path.expanduser('~/.hermes/cache/world_elo.tsv'))
+ELO_TTL = 7 * 86400  # 7 天
+
+FIFA_TO_IOC = {
+    'MEX':'ME','RSA':'ZA','KOR':'KO','CZE':'CZ','CAN':'CA','BIH':'BA',
+    'QAT':'QA','SUI':'CH','BRA':'BR','MAR':'MA','HAI':'HT','SCO':'SC',
+    'USA':'US','PAR':'PY','AUS':'AU','TUR':'TR','GER':'DE','CUW':'CW',
+    'CIV':'CI','ECU':'EC','NED':'NL','JPN':'JP','SWE':'SE','TUN':'TN',
+    'BEL':'BE','EGY':'EG','IRN':'IR','NZL':'NZ','ESP':'ES','CPV':'CV',
+    'KSA':'SA','URU':'UY','FRA':'FR','SEN':'SN','IRQ':'IQ','NOR':'NO',
+    'ARG':'AR','ALG':'DZ','AUT':'AT','JOR':'JO','POR':'PT','COD':'CD',
+    'UZB':'UZ','COL':'CO','ENG':'EN','CRO':'HR','GHA':'GH','PAN':'PA',
+}
+
+HOME_BOOST = 100   # 主场加成（ELO 分）
+LEAGUE_AVG = 1.35  # 每队平均预期进球（参考世界杯历史场均 2.7 球）
+AWAY_DISCOUNT = 0.93  # 客场进球折扣
+MARGIN = 0.08      # 庄家利润（overround = 1 + margin）
+ELO_FLOOR = 1400   # ELO 下限（进入世界杯的最低门槛，避免 EloRatings 给 Scotland=853 这种极端低分）
+
+
+def fetch_elo_data():
+    """抓取并缓存 EloRatings.net World.tsv"""
+    ELO_CACHE.parent.mkdir(parents=True, exist_ok=True)
+    if ELO_CACHE.exists() and (time.time() - ELO_CACHE.stat().st_mtime) < ELO_TTL:
+        return ELO_CACHE.read_text()
+    req = urllib.request.Request('https://www.eloratings.net/World.tsv',
+                                 headers={'User-Agent': 'Mozilla/5.0'})
+    data = urllib.request.urlopen(req, timeout=15).read().decode('utf-8')
+    ELO_CACHE.write_text(data)
+    return data
+
+
+def parse_elo(raw):
+    """解析 TSV → {ioc_code: elo_int}"""
+    result = {}
+    for line in raw.strip().split('\n'):
+        p = line.split('\t')
+        if len(p) > 3:
+            try: result[p[2]] = int(p[3])
+            except: pass
+    return result
+
+
+def build_elo_map(teams):
+    """FIFA_code → ELO (应用 floor 1400)"""
+    elo_by_ioc = parse_elo(fetch_elo_data())
+    out = {}
+    for t in teams:
+        ioc = FIFA_TO_IOC.get(t['fifa_code'])
+        raw = elo_by_ioc.get(ioc, 1500) if ioc else 1500
+        out[t['fifa_code']] = max(ELO_FLOOR, raw)
+    return out
+
+
+def expected_goals(home_elo, away_elo):
+    """ELO 差 → 双方预期进球数"""
+    diff = (home_elo + HOME_BOOST) - away_elo
+    lh = LEAGUE_AVG * (10 ** (diff / 600))
+    la = LEAGUE_AVG * (10 ** (-diff / 600)) * AWAY_DISCOUNT
+    return lh, la
+
+
+def _poisson(lam, k):
+    if lam <= 0: return 1.0 if k == 0 else 0.0
+    return math.exp(-lam) * (lam ** k) / math.factorial(k)
+
+
+def match_probs(lh, la, max_goals=8):
+    """双独立泊松 → (P_home, P_draw, P_away, total_goals_dist, P_over25, P_under25)"""
+    pm = [[_poisson(lh, i) * _poisson(la, j) for j in range(max_goals+1)] for i in range(max_goals+1)]
+    p_w = sum(pm[i][j] for i in range(max_goals+1) for j in range(i))
+    p_d = sum(pm[i][i] for i in range(max_goals+1))
+    p_l = 1 - p_w - p_d
+    pt = {}
+    for total in range(0, 2*max_goals+1):
+        s = 0
+        for i in range(max_goals+1):
+            j = total - i
+            if 0 <= j <= max_goals: s += pm[i][j]
+        pt[total] = s
+    p7 = sum(p for k, p in pt.items() if isinstance(k, int) and k >= 7)
+    pt = {k: p for k, p in pt.items() if not (isinstance(k, int) and k >= 7)}
+    pt['7+'] = p7
+    p_over = sum(p for k, p in pt.items() if k == '7+' or (isinstance(k, int) and k >= 3))
+    p_under = 1 - p_over
+    return p_w, p_d, p_l, pt, p_over, p_under
+
+
+def fair_to_market(p, margin=MARGIN, lo=1.10, hi=80.0):
+    """fair odds (1/p) 加庄家 margin → 市场赔率
+    博彩公司让 sum(1/market_odds_i) = 1 + margin（典型 1.07-1.08）"""
+    if p <= 0: return hi
+    market = (1.0 / p) / (1 + margin)
+    return max(lo, min(hi, round(market, 2)))
+
+
+def compute_game_odds(game, elo_map, id2code):
+    """为单场比赛计算赔率，写入 game 字典"""
+    h_elo = elo_map.get(id2code.get(str(game['home_team_id']), ''), 1500)
+    a_elo = elo_map.get(id2code.get(str(game['away_team_id']), ''), 1500)
+    lh, la = expected_goals(h_elo, a_elo)
+    p_w, p_d, p_l, p_t, p_over, p_under = match_probs(lh, la)
+    game['odds_wdl'] = {
+        'home': fair_to_market(p_w),
+        'draw': fair_to_market(p_d),
+        'away': fair_to_market(p_l),
+    }
+    game['odds_ou25'] = {
+        'over':  fair_to_market(p_over),
+        'under': fair_to_market(p_under),
+    }
+    game['odds_goals'] = {k: fair_to_market(v) for k, v in p_t.items()}
+    return game
+
+
+# ==== 数据加载 ====
 with open(proj / 'wc_games_slim.json', encoding='utf-8') as f:
     games = json.load(f)['games']
 with open(proj / 'wc_groups.json', encoding='utf-8') as f:
@@ -26,6 +151,12 @@ COUNTRY_CN = {
     'Colombia': '哥伦比亚', 'England': '英格兰', 'Croatia': '克罗地亚', 'Ghana': '加纳',
     'Panama': '巴拿马',
 }
+
+# 计算所有比赛赔率（Dixon-Coles 双泊松 + ELO + 庄家 margin）
+_elo_map = build_elo_map(teams)
+_id2code = {t['id']: t['fifa_code'] for t in teams}
+for g in games:
+    compute_game_odds(g, _elo_map, _id2code)
 
 # 给 teams 加 name_cn 字段
 for t in teams:
@@ -571,8 +702,12 @@ const teamMap = {};
 TEAMS.forEach(t => { teamMap[t.id] = t; });
 
 // 默认赔率（中国体彩）
-const ODDS_WDL = { home: 1.80, draw: 3.20, away: 4.00 };
-const ODDS_GOALS = { '0': 8.0, '1': 4.5, '2': 3.2, '3': 3.5, '4': 4.5, '5': 7.0, '6': 12.0, '7+': 25.0 };
+// 默认赔率（中国体彩风格基础值）。单场比赛动态赔率由 build.py 通过 Dixon-Coles 模型计算后
+// 注入到每场 game.odds_wdl / odds_ou25 / odds_goals，本地仅作 fallback。
+const ODDS_WDL_DEFAULT = { home: 1.80, draw: 3.20, away: 4.00 };
+const ODDS_GOALS_DEFAULT = { '0': 8.0, '1': 4.5, '2': 3.2, '3': 3.5, '4': 4.5, '5': 7.0, '6': 12.0, '7+': 25.0 };
+function oddsWdl(g) { return g && g.odds_wdl ? g.odds_wdl : ODDS_WDL_DEFAULT; }
+function oddsGoals(g) { return g && g.odds_goals ? g.odds_goals : ODDS_GOALS_DEFAULT; }
 
 // 运行时状态（每个用户独立，由 doLogin 重置）
 let balance = 0;
@@ -777,12 +912,18 @@ function renderGames() {
     if (ft !== 'all' && g.type !== ft) return false;
     return true;
   });
-  // 排序: 进行中 → 未开始 (按日期) → 已结束 (按 matchday desc 最新结束在前)
+  // 排序：进行中 → 未开始（按时间升序，最早在前）→ 已结束（按时间降序，最新结束在前）
+  const toTs = g => {
+    // local_date 格式 "MM/DD/YYYY HH:MM"，转成可比较的时间戳
+    const m = /(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/.exec(g.local_date || '');
+    if (!m) return 0;
+    return Date.UTC(+m[3], +m[1]-1, +m[2], +m[4], +m[5]);
+  };
   list.sort((a, b) => {
     const sa = gameStatus(a), sb = gameStatus(b);
     if (sa !== sb) return sa === 1 ? -1 : sb === 1 ? 1 : (sa === 0 ? -1 : 1);
-    if (sa === 2) return parseInt(b.matchday) - parseInt(a.matchday);
-    return parseInt(a.matchday) - parseInt(b.matchday);
+    const ta = toTs(a), tb = toTs(b);
+    return sa === 2 ? tb - ta : ta - tb;
   });
   const container = document.getElementById('gamesContainer');
   if (!list.length) {
@@ -875,20 +1016,22 @@ function openBetModal(gameId) {
     </div>
     <div style="color:#8a96a8;margin-top:6px">组 ${g.group} · MD${g.matchday} · ${toBeijing(g.local_date)} · ${_BJ}</div>
   `;
-  // 胜平负
+  // 胜平负（用当前比赛动态赔率 g.odds_wdl）
   const wdl = document.getElementById('wdlOptions');
   const homeShort = (home.name_cn || home.name_en).substring(0, 4);
   const awayShort = (away.name_cn || away.name_en).substring(0, 4);
+  const oWdl = oddsWdl(g);
   wdl.innerHTML = [
     { v: 'home', l: '主胜 ' + homeShort },
     { v: 'draw', l: '平局' },
     { v: 'away', l: '客胜 ' + awayShort }
   ].map(o => `<div class="option" data-type="wdl" data-value="${o.v}" onclick="selectOption(this)">
-    <div class="label">${o.l}</div><div class="odds">@ ${ODDS_WDL[o.v].toFixed(2)}</div>
+    <div class="label">${o.l}</div><div class="odds">@ ${oWdl[o.v].toFixed(2)}</div>
   </div>`).join('');
-  // 总进球
+  // 总进球（用当前比赛动态赔率 g.odds_goals）
   const goals = document.getElementById('goalsOptions');
-  goals.innerHTML = Object.entries(ODDS_GOALS).map(([k, v]) => `<div class="option" data-type="goals" data-value="${k}" onclick="selectOption(this)">
+  const oGoals = oddsGoals(g);
+  goals.innerHTML = Object.entries(oGoals).map(([k, v]) => `<div class="option" data-type="goals" data-value="${k}" onclick="selectOption(this)">
     <div class="label">${k}球</div><div class="odds">@ ${v.toFixed(2)}</div>
   </div>`).join('');
   document.getElementById('betModal').classList.add('open');
@@ -920,7 +1063,9 @@ function addToSlip() {
     alert('余额不足，当前余额 ¥' + balance);
     return;
   }
-  const odds = currentModalSelection.type === 'wdl' ? ODDS_WDL[currentModalSelection.value] : ODDS_GOALS[currentModalSelection.value];
+  const oWdl = oddsWdl(currentModalGame);
+  const oGoals = oddsGoals(currentModalGame);
+  const odds = currentModalSelection.type === 'wdl' ? oWdl[currentModalSelection.value] : oGoals[currentModalSelection.value];
   const g = currentModalGame;
   const home = teamMap[g.home_team_id] || { name_en: g.home_team_name_en, name_cn: g.home_team_name_cn };
   const away = teamMap[g.away_team_id] || { name_en: g.away_team_name_en, name_cn: g.away_team_name_cn };

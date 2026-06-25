@@ -1,10 +1,10 @@
 #!/bin/bash
 # 停止 2026 世界杯模拟盘服务
-# 用法: ./stop.sh [PORT]   默认 8765
+# 用法: ./stop.sh [PORT]   默认 2026
 set -e
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
-PORT="${1:-${PORT:-8765}}"
+PORT="${1:-${PORT:-2026}}"
 PID_FILE="$DIR/.wc-bet.pid"
 STOPPED=0
 
