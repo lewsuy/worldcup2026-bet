@@ -638,6 +638,11 @@ function toBeijing(s) {
   const utc = new Date(Date.UTC(y, mo, d, h + 4, mi));
   // 2) UTC → 北京: +8h
   utc.setUTCHours(utc.getUTCHours() + 8);
+  return utc;
+}
+function toBeijingStr(s) {
+  const utc = toBeijing(s);
+  if (!(utc instanceof Date) || isNaN(utc)) return s;
   const yy = utc.getUTCFullYear();
   const mm = String(utc.getUTCMonth() + 1).padStart(2, '0');
   const dd = String(utc.getUTCDate()).padStart(2, '0');
@@ -646,6 +651,24 @@ function toBeijing(s) {
   return `${yy}-${mm}-${dd} ${hh}:${mii}`;
 }
 const _BJ = '(北京时间)';
+// 投注截止：开赛前 2 小时
+const BETTING_CUTOFF_MS = 2 * 60 * 60 * 1000;
+function kickoffDate(g) { return toBeijing(g.local_date); }
+function bettingClosed(g) {
+  if (g.finished === 'TRUE' || g.finished === 'true') return '已结束';
+  const ko = kickoffDate(g);
+  if (!(ko instanceof Date) || isNaN(ko)) return null;
+  const diff = ko.getTime() - Date.now();
+  if (diff <= 0) return '已开赛';
+  if (diff <= BETTING_CUTOFF_MS) return '已截止（开赛前 2 小时内禁止投注）';
+  return null;  // null = 仍可投注
+}
+function cutoffMinutesLeft(g) {
+  const ko = kickoffDate(g);
+  if (!(ko instanceof Date) || isNaN(ko)) return null;
+  const diff = ko.getTime() - Date.now();
+  return Math.max(0, Math.floor(diff / 60000));
+}
 
 async function fetchLiveData(manual) {
   const btn = document.getElementById('refreshBtn');
@@ -775,7 +798,7 @@ function renderGames() {
     } else if (isFinished) {
       statusBadge = `<span class="status-finished">已结束</span>`;
     } else {
-      statusBadge = `<span class="status-upcoming">${toBeijing(g.local_date)}</span>`;
+      statusBadge = `<span class="status-upcoming">${toBeijingStr(g.local_date)}</span>`;
     }
     // 比分或 VS
     const scoreHtml = (isFinished || isLive)
@@ -799,8 +822,14 @@ function renderGames() {
       </div>
       ${scorersHtml ? `<div class="scorers">${scorersHtml}</div>` : ''}
       <div class="footer">
-        <span style="font-size:11px;color:#8a96a8">${toBeijing(g.local_date)} · ${_BJ}</span>
-        ${!isFinished && !isLive ? `<button class="bet-btn" onclick="openBetModal('${g.id}')">投注</button>` : ''}
+        <span style="font-size:11px;color:#8a96a8">${toBeijingStr(g.local_date)} · ${_BJ}</span>
+        ${!isFinished && !isLive ? (() => {
+          const reason = bettingClosed(g);
+          if (reason) return `<button class="bet-btn" disabled style="background:#555;cursor:not-allowed" title="${reason}">已截止</button>`;
+          const left = cutoffMinutesLeft(g);
+          const tip = left <= 24 * 60 ? `距截止 ${(left/60).toFixed(1)} 小时` : `投注截止：开赛前 2 小时`;
+          return `<button class="bet-btn" onclick="openBetModal('${g.id}')" title="${tip}">投注</button>`;
+        })() : ''}
       </div>
     </div>`;
   }).join('');
@@ -839,7 +868,7 @@ function openBetModal(gameId) {
       <span style="color:#8a96a8">VS</span>
       <strong>${away.name_cn || away.name_en}</strong>
     </div>
-    <div style="color:#8a96a8;margin-top:6px">组 ${g.group} · MD${g.matchday} · ${toBeijing(g.local_date)} · ${_BJ}</div>
+    <div style="color:#8a96a8;margin-top:6px">组 ${g.group} · MD${g.matchday} · ${toBeijingStr(g.local_date)} · ${_BJ}</div>
   `;
   // 胜平负（用当前比赛动态赔率 g.odds_wdl）
   const wdl = document.getElementById('wdlOptions');
@@ -879,6 +908,12 @@ function addToSlip() {
     alert('请先选择一个投注选项');
     return;
   }
+  // 检查投注截止（开赛前 2 小时）
+  const closed = bettingClosed(currentModalGame);
+  if (closed) {
+    alert(closed);
+    return;
+  }
   const amt = parseInt(document.getElementById('betAmount').value);
   if (!amt || amt < 2) {
     alert('投注金额最低 2 元');
@@ -897,7 +932,7 @@ function addToSlip() {
   betSlip.push({
     gameId: g.id,
     gameLabel: `${home.name_cn || home.name_en} vs ${away.name_cn || away.name_en}`,
-    gameDate: toBeijing(g.local_date),
+    gameDate: toBeijingStr(g.local_date),
     type: currentModalSelection.type,
     pick: currentModalSelection.value,
     pickLabel: getPickLabel(currentModalSelection),
