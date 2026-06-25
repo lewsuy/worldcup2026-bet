@@ -45,8 +45,8 @@ if command -v ss >/dev/null 2>&1; then
   fi
 fi
 
-# 4) 兜底：pkill by name
-if pkill -f "http.server $PORT" 2>/dev/null; then
+# 4) 兜底：pkill by name（用 [h] 转义避免 pkill 命令自身命令行匹配自杀）
+if pkill -f "[h]ttp.server $PORT" 2>/dev/null; then
   echo "[stop] killed via pkill"
   STOPPED=1
 fi
