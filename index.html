@@ -681,16 +681,18 @@ function renderGroups() {
 const LIVE_API = 'https://worldcup26.ir/get/games';
 let _liveTimer = null;
 
-// local_date = 美东 EDT (UTC-4) → 北京时间 (UTC+8) = +12h
+// local_date = 美西 PDT (UTC-7) → 北京时间 (UTC+8) = +15h
+// 注：6月美国是夏令时，2026世界杯比赛当地多为西海岸时间(PDT)
+//    反推验证：TUR vs USA 06/25 19:00 PDT = 06/26 10:00 北京 ✓
 function toBeijing(s) {
   if (!s) return s;
   const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/);
   if (!m) return s;
   const mo = parseInt(m[1]) - 1, d = parseInt(m[2]), y = parseInt(m[3]);
   const h = parseInt(m[4]), mi = parseInt(m[5]);
-  // 1) 美东 → UTC: 美东 EDT = UTC-4, 所以 +4h 得 UTC
+  // 1) 美西 → UTC: 美西 PDT = UTC-7, 所以 +7h 得 UTC
   //    Date.UTC 自动规范化越界小时/日期
-  const utc = new Date(Date.UTC(y, mo, d, h + 4, mi));
+  const utc = new Date(Date.UTC(y, mo, d, h + 7, mi));
   // 2) UTC → 北京: +8h
   utc.setUTCHours(utc.getUTCHours() + 8);
   return utc;
