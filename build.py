@@ -1112,36 +1112,146 @@ function renderKnockout() {
     <div style="color:#8a96a8;font-size:13px;">最后更新：${lastUpdate}</div>
   </div>`;
 
-  // 4 段常规轮次：R32(4列) / R16(4列) / QF(2列) / SF(2列)
-  const subsByRound = {
-    R32: '第 73-88 场（16 场）',
-    R16: '第 89-96 场（8 场）',
-    QF:  '第 97-100 场（4 场）',
-    SF:  '第 101-102 场（2 场）',
-  };
-  for (const r of rounds.slice(0, 4)) {
-    html += sectionHtml(r.key, r.name, subsByRound[r.key], r.key==='R32'||r.key==='R16' ? 4 : 2, byRound[r.key] || []);
-  }
+  // 5) 渲染 5 列树状对阵图 + 季军赛（F 列下方）
+  // 几何参数：6 列水平排列 + SVG 连线 + 水平滚动
+  const TREE_rowH   = 50;   // 每场 R32 占行高
+  const TREE_colW   = 220;  // 比赛节点宽
+  const TREE_colGap = 50;   // 列间距
+  const TREE_padX   = 20;   // 横向边距
+  const TREE_padY   = 50;   // 顶部留出标题
+  const TREE_nodeH  = 76;   // 节点高（时间+队名）
+  const TREE_headerH= 50;   // 轮次标题高
 
-  // 决赛 + 季军赛 同一段（2 列 grid）
-  const cF = colorMap.F;
-  const c3 = colorMap['3rd'];
-  const m3 = byRound['3rd'] && byRound['3rd'][0];
-  const mF = byRound['F'] && byRound['F'][0];
-  const finalSub = [
-    m3 ? `第 ${m3.no} 场（季军赛）` : '',
-    mF ? `第 ${mF.no} 场（决赛）` : '第 104 场（决赛）',
-  ].filter(Boolean).join(' / ');
-  html += `<section class="ko-section" style="margin-bottom:28px;">
-    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid ${tint(cF, 0.30)};">
-      <h3 style="margin:0;color:${cF};font-size:18px;font-weight:700;">决赛 &amp; 季军赛</h3>
-      <span style="color:#8a96a8;font-size:12px;">${finalSub}</span>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
-      ${m3 ? cardHtml('3rd', m3) : ''}
-      ${mF ? cardHtml('F',   mF) : ''}
-    </div>
-  </section>`;
+  // y 坐标：2 场汇合到中间（树状错开）
+  function TREE_y(round, idx) {
+    const map = {R32: idx, R16: 2*idx+0.5, QF: 4*idx+1.5, SF: 8*idx+3.5, F: 6.0};
+    return TREE_padY + (map[round] || idx) * TREE_rowH + TREE_nodeH/2;
+  }
+  function TREE_y3rd() { return TREE_padY + 9.5 * TREE_rowH + TREE_nodeH/2; }
+  // 5 列 x 坐标
+  const TREE_x = {R32:0, R16:1, QF:2, SF:3, F:4};
+  function TREE_xFor(round) {
+    return TREE_padX + TREE_x[round] * (TREE_colW + TREE_colGap);
+  }
+  function TREE_xFor3rd() { return TREE_padX + 4 * (TREE_colW + TREE_colGap); }
+  // 树总尺寸
+  const TREE_fullW = TREE_padX + 5 * TREE_colW + 4 * TREE_colGap + TREE_colGap + TREE_colW + TREE_padX; // 5主+3rd
+  const TREE_fullH = TREE_headerH + TREE_padY + 9.5 * TREE_rowH + TREE_nodeH + TREE_padY;
+  const TREE_lineOffset = TREE_headerH;  // SVG 起点 y
+
+  // 5.5) 打开外层滚动容器 + 内层相对定位容器
+  html += `<div class="ko-tree-wrap" style="overflow-x:auto;overflow-y:visible;padding:6px 0 14px 0;">
+    <div class="ko-tree" style="position:relative;width:${TREE_fullW}px;height:${TREE_fullH}px;">`;
+
+  // 6) 轮次标题（5 主列 + 3rd 单独列）
+  const TREE_cols = [
+    {key:'R32', name:'1/16决赛', count:16},
+    {key:'R16', name:'1/8决赛',  count:8},
+    {key:'QF',  name:'1/4决赛',  count:4},
+    {key:'SF',  name:'半决赛',   count:2},
+    {key:'F',   name:'决赛',     count:1},
+  ];
+  for (const c of TREE_cols) {
+    const x = TREE_xFor(c.key);
+    const colC = colorMap[c.key];
+    html += `<div style="position:absolute;left:${x}px;top:0;width:${TREE_colW}px;height:${TREE_headerH - 6}px;display:flex;align-items:center;justify-content:center;gap:8px;border-bottom:2px solid ${colC};">
+      <span style="color:${colC};font-size:15px;font-weight:700;">${c.name}</span>
+      <span style="color:#8a96a8;font-size:11px;">${c.count}场</span>
+    </div>`;
+  }
+  // 3rd 列标题
+  const x3r_title = TREE_xFor3rd();
+  const c3_title = colorMap['3rd'];
+  html += `<div style="position:absolute;left:${x3r_title}px;top:0;width:${TREE_colW}px;height:${TREE_headerH - 6}px;display:flex;align-items:center;justify-content:center;gap:8px;border-bottom:2px dashed ${c3_title};">
+    <span style="color:${c3_title};font-size:15px;font-weight:700;">季军赛</span>
+    <span style="color:#8a96a8;font-size:11px;">1场</span>
+  </div>`;
+
+  // 7) SVG 连线层（在卡片之下）
+  html += `<svg style="position:absolute;left:0;top:${TREE_lineOffset}px;width:${TREE_fullW}px;height:${TREE_fullH - TREE_lineOffset}px;pointer-events:none;overflow:visible;">`;
+  function TREE_lineY(round, idx) { return TREE_y(round, idx) - TREE_padY; }
+  // R32 → R16：8 条（每个 R16 接收 2 个 R32）
+  for (let i = 0; i < 8; i++) {
+    const x1 = TREE_xFor('R32') + TREE_colW;
+    const x2 = TREE_xFor('R16');
+    const yA = TREE_lineY('R32', 2*i);
+    const yB = TREE_lineY('R32', 2*i + 1);
+    const yC = TREE_lineY('R16', i);
+    const midX = (x1 + x2) / 2;
+    const col = colorMap.R32;
+    const stroke = tint(col, 0.55);
+    html += `<path d="M${x1},${yA} L${midX},${yA} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none"/>`;
+    html += `<path d="M${x1},${yB} L${midX},${yB} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none"/>`;
+  }
+  // R16 → QF
+  for (let i = 0; i < 4; i++) {
+    const x1 = TREE_xFor('R16') + TREE_colW;
+    const x2 = TREE_xFor('QF');
+    const yA = TREE_lineY('R16', 2*i);
+    const yB = TREE_lineY('R16', 2*i + 1);
+    const yC = TREE_lineY('QF', i);
+    const midX = (x1 + x2) / 2;
+    const col = colorMap.R16;
+    const stroke = tint(col, 0.55);
+    html += `<path d="M${x1},${yA} L${midX},${yA} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none"/>`;
+    html += `<path d="M${x1},${yB} L${midX},${yB} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none"/>`;
+  }
+  // QF → SF
+  for (let i = 0; i < 2; i++) {
+    const x1 = TREE_xFor('QF') + TREE_colW;
+    const x2 = TREE_xFor('SF');
+    const yA = TREE_lineY('QF', 2*i);
+    const yB = TREE_lineY('QF', 2*i + 1);
+    const yC = TREE_lineY('SF', i);
+    const midX = (x1 + x2) / 2;
+    const col = colorMap.QF;
+    const stroke = tint(col, 0.55);
+    html += `<path d="M${x1},${yA} L${midX},${yA} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none"/>`;
+    html += `<path d="M${x1},${yB} L${midX},${yB} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none"/>`;
+  }
+  // SF → F
+  {
+    const x1 = TREE_xFor('SF') + TREE_colW;
+    const x2 = TREE_xFor('F');
+    const yA = TREE_lineY('SF', 0);
+    const yB = TREE_lineY('SF', 1);
+    const yC = TREE_lineY('F', 0);
+    const midX = (x1 + x2) / 2;
+    const col = colorMap.SF;
+    const stroke = tint(col, 0.55);
+    html += `<path d="M${x1},${yA} L${midX},${yA} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none"/>`;
+    html += `<path d="M${x1},${yB} L${midX},${yB} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none"/>`;
+  }
+  // SF → 3rd（两场半决赛的负者，虚线表示）
+  {
+    const x1 = TREE_xFor('SF') + TREE_colW;
+    const x2 = TREE_xFor3rd();
+    const yA = TREE_lineY('SF', 0);
+    const yB = TREE_lineY('SF', 1);
+    const yC = TREE_y3rd() - TREE_padY;
+    const midX = (x1 + x2) / 2;
+    const stroke = tint(colorMap['3rd'], 0.55);
+    html += `<path d="M${x1},${yA} L${midX},${yA} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none" stroke-dasharray="4 3"/>`;
+    html += `<path d="M${x1},${yB} L${midX},${yB} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none" stroke-dasharray="4 3"/>`;
+  }
+  html += `</svg>`;
+
+  // 8) 卡片层（绝对定位覆盖在 SVG 上）
+  function TREE_place(round, m, x, y) {
+    const top = y - TREE_nodeH/2;
+    return cardHtml(round, m).replace(
+      'class="ko-card"',
+      `class="ko-card" style="position:absolute;left:${x}px;top:${top}px;width:${TREE_colW}px;height:${TREE_nodeH}px;"`
+    );
+  }
+  for (let i = 0; i < (byRound['R32'] || []).length; i++) html += TREE_place('R32', byRound['R32'][i], TREE_xFor('R32'), TREE_y('R32', i));
+  for (let i = 0; i < (byRound['R16'] || []).length; i++) html += TREE_place('R16', byRound['R16'][i], TREE_xFor('R16'), TREE_y('R16', i));
+  for (let i = 0; i < (byRound['QF']  || []).length; i++) html += TREE_place('QF',  byRound['QF'][i],  TREE_xFor('QF'),  TREE_y('QF',  i));
+  for (let i = 0; i < (byRound['SF']  || []).length; i++) html += TREE_place('SF',  byRound['SF'][i],  TREE_xFor('SF'),  TREE_y('SF',  i));
+  if (byRound['F']   && byRound['F'][0])   html += TREE_place('F',   byRound['F'][0],   TREE_xFor('F'),   TREE_y('F',   0));
+  if (byRound['3rd'] && byRound['3rd'][0]) html += TREE_place('3rd', byRound['3rd'][0], TREE_xFor3rd(),   TREE_y3rd());
+
+  html += `</div></div>`;
 
   container.innerHTML = html;
 }
