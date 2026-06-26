@@ -1080,10 +1080,10 @@ function renderKnockout() {
         <span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:18px;padding:0 6px;background:${tint(c,0.18)};color:${c};border:1px solid ${tint(c,0.55)};border-radius:9px;font-size:10px;font-weight:700;">#${m.no}</span>
         <span style="color:#8a96a8;font-size:11px;">⏰ ${esc(m.time || '')}</span>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px;line-height:1.4;">
-        <span style="color:${colorA};font-weight:${wA};font-style:${fsA};flex:1;">${esc(m.a || '?')}</span>
-        <span style="color:#8a96a8;font-size:12px;">vs</span>
-        <span style="color:${colorB};font-weight:${wB};font-style:${fsB};flex:1;text-align:right;">${esc(m.b || '?')}</span>
+      <div style="display:flex;align-items:center;justify-content:flex-start;gap:6px;font-size:14px;line-height:1.4;white-space:nowrap;overflow:hidden;">
+        <span style="color:${colorA};font-weight:${wA};font-style:${fsA};flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;max-width:50%;">${esc(m.a || '?')}</span>
+        <span style="color:#8a96a8;font-size:11px;flex:0 0 auto;opacity:0.7;">vs</span>
+        <span style="color:${colorB};font-weight:${wB};font-style:${fsB};flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;max-width:50%;">${esc(m.b || '?')}</span>
       </div>
       ${scoreLine}
     </div>`;
