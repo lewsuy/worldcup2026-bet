@@ -196,7 +196,7 @@ tr.top3best .pts-cell { color: #2ecc71; }
       <span><span style="display:inline-block;width:14px;height:14px;background:#1a2332;border:1px dashed #8a96a8;border-radius:3px;vertical-align:middle"></span> 占位符</span>
       <span><span style="display:inline-block;width:14px;height:14px;background:rgba(255,71,87,0.12);border:2px solid #ff4757;border-radius:3px;vertical-align:middle"></span> 已结束</span>
     </div>
-    <div id="knockoutContainer" class="knockout-container" style="overflow-x:auto;overflow-y:hidden;padding-bottom:14px;"></div>
+    <div id="knockoutContainer" class="knockout-container" style="overflow-x:hidden;overflow-y:auto;padding-bottom:14px;max-height:calc(100vh - 200px);"></div>
   </div>
   <!-- TAB 3: 赛程 -->
   <div id="tab-games" class="tab-pane" style="display:none">
@@ -836,9 +836,9 @@ function renderKnockout() {
 
   // 5) 画 SVG
   const totalW = padX * 2 + rounds.length * colW + (rounds.length - 1) * colGap;
-  // totalH 必须容纳 F 列下面 3rd 的位置（行 8.5 + 1 行底部空白）
-  const totalH = padY + 10 * rowH + 30;
-  let svg = `<svg width="${totalW}" height="${totalH}" xmlns="http://www.w3.org/2000/svg" style="display:block;font-family:system-ui,'PingFang SC',sans-serif;">`;
+  // totalH 必须容纳 R32 全部 16 场 + F 列下面 3rd 的位置
+  const totalH = padY + 16 * rowH + 50;
+  let svg = `<svg width="${totalW}" height="${totalH}" viewBox="0 0 ${totalW} ${totalH}" preserveAspectRatio="xMidYMin meet" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;height:auto;font-family:system-ui,'PingFang SC',sans-serif;">`;
 
   // 5.0) defs：阴影 filter
   svg += `<defs>
