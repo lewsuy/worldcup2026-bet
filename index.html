@@ -196,7 +196,7 @@ tr.top3best .pts-cell { color: #2ecc71; }
       <span><span style="display:inline-block;width:14px;height:14px;background:#1a2332;border:1px dashed #8a96a8;border-radius:3px;vertical-align:middle"></span> 占位符</span>
       <span><span style="display:inline-block;width:14px;height:14px;background:rgba(255,71,87,0.12);border:2px solid #ff4757;border-radius:3px;vertical-align:middle"></span> 已结束</span>
     </div>
-    <div id="knockoutContainer" class="knockout-container" style="overflow-x:hidden;overflow-y:auto;padding-bottom:14px;max-height:calc(100vh - 200px);"></div>
+    <div id="knockoutContainer" class="ko-container" style="overflow-x:hidden;overflow-y:auto;padding:18px 22px;max-height:calc(100vh - 200px);"><span id="koUpdated" style="display:none">2026年06月26日</span></div>
   </div>
   <!-- TAB 3: 赛程 -->
   <div id="tab-games" class="tab-pane" style="display:none">
@@ -791,6 +791,19 @@ function renderKnockout() {
   const bgTint   = r => tint(r, 0.10);
   const borderT  = r => tint(r, 0.55);
 
+  // 辅助函数：是否已结束 / 是否占位符（HTML div 版 cardHtml 需要）
+  function isFinished(m) {
+    const g = koGames[m.no];
+    return g && (g.finished === 'TRUE' || g.finished === 'true' || g.finished === true);
+  }
+  function isPlaceholder(s) {
+    if (!s) return true;
+    if (/^W\d+|^L\d+/.test(s)) return true;
+    if (/^[A-L]组(首名|次名|第三名)|^第三名[A-Z/]+$/.test(s)) return true;
+    return false;
+  }
+  function esc(s) { return (s || '').replace(/[<&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'})[c]); }
+
   const byRound = {};
   for (const r of rounds) byRound[r.key] = [];
   byRound['3rd'] = []; // 季军赛单独渲染在 F 列下方，但需要收集数据
@@ -834,202 +847,119 @@ function renderKnockout() {
     }
   }
 
-  // 5) 画 SVG
-  const totalW = padX * 2 + rounds.length * colW + (rounds.length - 1) * colGap;
-  // totalH 必须容纳 R32 全部 16 场 + F 列下面 3rd 的位置
-  const totalH = padY + 16 * rowH + 50;
-  let svg = `<svg width="${totalW}" height="${totalH}" viewBox="0 0 ${totalW} ${totalH}" preserveAspectRatio="xMidYMin meet" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;height:auto;font-family:system-ui,'PingFang SC',sans-serif;">`;
-
-  // 5.0) defs：阴影 filter
-  svg += `<defs>
-    <filter id="koShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
-      <feOffset dx="0" dy="2" result="offsetblur"/>
-      <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
-      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>`;
-
-  // 5.1) 轮次标题（颜色按主题色）
-  rounds.forEach((r, ci) => {
-    const x = padX + ci * (colW + colGap);
-    const y = 35;
-    const c = colorMap[r.key];
-    // 主题色徽标背景
-    svg += `<rect x="${x + colW/2 - 50}" y="${y - 18}" width="100" height="26" rx="13" fill="${bgTint(c)}" stroke="${borderT(c)}" stroke-width="1"/>`;
-    svg += `<text x="${x + colW/2}" y="${y}" fill="${c}" font-size="14" font-weight="700" text-anchor="middle">${r.name}</text>`;
-    svg += `<text x="${x + colW/2}" y="${y + 18}" fill="#8a96a8" font-size="10" text-anchor="middle">第 ${byRound[r.key][0]?.no || ''}${byRound[r.key].length > 1 ? '-' + byRound[r.key][byRound[r.key].length-1].no : ''} 场</text>`;
-  });
-
-  // 5.2) 节点
-  function isPlaceholder(s) {
-    if (!s) return true;
-    if (/^W\d+|^L\d+/.test(s)) return true;
-    if (/^[A-L]组(首名|次名|第三名)|^第三名[A-Z/]+$/.test(s)) return true;
-    return false;
-  }
-  function isFinished(m) {
-    const g = koGames[m.no];
-    return g && (g.finished === 'TRUE' || g.finished === 'true' || g.finished === true);
-  }
-  function esc(s) { return (s || '').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'})[c]); }
-
-  function renderCard(roundKey, m, x, y) {
-    const themeColor = colorMap[roundKey];
+// 渲染单张卡片（HTML div，非 SVG）
+  function cardHtml(roundKey, m) {
+    const c = colorMap[roundKey];
     const finished = isFinished(m);
     const placeholderA = isPlaceholder(m.a);
     const placeholderB = isPlaceholder(m.b);
 
-    // 边框优先级：已结束(红) > 占位符(灰虚) > 主题色边框
-    let stroke, fill, dash = '', strokeWidth = 1.5;
+    let borderColor, bgColor, borderStyle = 'solid', borderWidth = 1;
     if (finished) {
-      stroke = '#ff4757';
-      fill = 'rgba(255,71,87,0.12)';
-      strokeWidth = 2;
+      borderColor = '#ff4757';
+      bgColor = 'rgba(255,71,87,0.12)';
+      borderWidth = 2;
     } else if (placeholderA && placeholderB) {
-      stroke = '#8a96a8';
-      fill = '#1a2332';
-      dash = '4,3';
+      borderColor = '#8a96a8';
+      bgColor = '#1a2332';
+      borderStyle = 'dashed';
     } else {
-      stroke = borderT(themeColor);
-      fill = bgTint(themeColor);
+      borderColor = tint(c, 0.55);
+      bgColor = tint(c, 0.10);
     }
 
-    // hover：高亮时增加亮度
-    const hoverOn  = `this.setAttribute('data-hover','1');this.style.filter='brightness(1.25)';`;
-    const hoverOff = `this.removeAttribute('data-hover');this.style.filter='';`;
-
-    let g = `<g data-no="${m.no}" style="cursor:pointer;transition:filter .15s;" onmouseover="${hoverOn}" onmouseout="${hoverOff}">`;
-
-    // 矩形（带阴影）
-    g += `<rect x="${x}" y="${y - nodeH/2}" width="${colW}" height="${nodeH}" rx="8" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" ${dash ? `stroke-dasharray="${dash}"` : ''} filter="url(#koShadow)"/>`;
-
-    // 第 N 场（小圆点标签，左上角）—— 不与主文字抢眼
-    g += `<circle cx="${x + 14}" cy="${y - nodeH/2 + 12}" r="9" fill="${bgTint(themeColor)}" stroke="${borderT(themeColor)}" stroke-width="1"/>`;
-    g += `<text x="${x + 14}" y="${y - nodeH/2 + 15}" fill="${themeColor}" font-size="9" font-weight="700" text-anchor="middle">${m.no}</text>`;
-
-    // 时间（独占一行顶部，灰色小字）—— 在圆点标签右侧
-    g += `<text x="${x + 28}" y="${y - nodeH/2 + 16}" fill="#8a96a8" font-size="11">⏰ ${esc(m.time || '')}</text>`;
-
-    // 队A vs 队B（独占一行，大字白色）—— y = y + 8
-    const teamFontSize = 14;
-    const teamY = y + 8;
     const colorA = placeholderA ? '#8a96a8' : '#e8eef5';
     const colorB = placeholderB ? '#8a96a8' : '#e8eef5';
-    const styleA = placeholderA ? 'font-style:italic' : '';
-    const styleB = placeholderB ? 'font-style:italic' : '';
-    const weightA = placeholderA ? 400 : 600;
-    const weightB = placeholderB ? 400 : 600;
+    const fsA = placeholderA ? 'italic' : 'normal';
+    const fsB = placeholderB ? 'italic' : 'normal';
+    const wA = placeholderA ? 400 : 600;
+    const wB = placeholderB ? 400 : 600;
 
-    // 队 A
-    g += `<text x="${x + 14}" y="${teamY}" fill="${colorA}" font-size="${teamFontSize}" font-weight="${weightA}" style="${styleA}">${esc(m.a || '?')}</text>`;
-
-    // 比分 A（如 finished）—— 队名右侧金色
+    let scoreLine = '';
     if (finished && koGames[m.no]) {
-      const ginfo = koGames[m.no];
-      const ha = ginfo.home_score != null ? ginfo.home_score : '';
-      g += `<text x="${x + colW/2 + 20}" y="${teamY}" fill="#ffd700" font-size="15" font-weight="700" text-anchor="middle">${ha}</text>`;
+      const g = koGames[m.no];
+      const ha = g.home_score != null ? g.home_score : '';
+      const aa = g.away_score != null ? g.away_score : '';
+      scoreLine = `<div style="margin-top:8px;padding-top:6px;border-top:1px dashed ${borderColor};color:#ffd700;font-size:16px;font-weight:700;text-align:center;">${ha} - ${aa}</div>`;
     }
 
-    // vs 分隔（已完成比赛则显示分数，否则 vs）
-    if (finished && koGames[m.no]) {
-      g += `<text x="${x + colW/2}" y="${teamY}" fill="#ffd700" font-size="13" font-weight="700" text-anchor="middle">-</text>`;
-    } else {
-      g += `<text x="${x + colW/2}" y="${teamY}" fill="#8a96a8" font-size="12" text-anchor="middle">vs</text>`;
-    }
-
-    // 比分 B（如 finished）
-    if (finished && koGames[m.no]) {
-      const ginfo = koGames[m.no];
-      const aa = ginfo.away_score != null ? ginfo.away_score : '';
-      g += `<text x="${x + colW/2 + 50}" y="${teamY}" fill="#ffd700" font-size="15" font-weight="700" text-anchor="middle">${aa}</text>`;
-    }
-
-    // 队 B
-    g += `<text x="${x + colW - 14}" y="${teamY}" fill="${colorB}" font-size="${teamFontSize}" font-weight="${weightB}" text-anchor="end" style="${styleB}">${esc(m.b || '?')}</text>`;
-
-    g += `</g>`;
-    return g;
+    return `<div class="ko-card" data-no="${m.no}" style="
+      background:${bgColor};
+      border:${borderWidth}px ${borderStyle} ${borderColor};
+      border-radius:8px;
+      padding:10px 14px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.4);
+      transition:filter .15s;
+      cursor:pointer;
+    " onmouseover="this.style.filter='brightness(1.25)'" onmouseout="this.style.filter=''">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:18px;padding:0 6px;background:${tint(c,0.18)};color:${c};border:1px solid ${tint(c,0.55)};border-radius:9px;font-size:10px;font-weight:700;">#${m.no}</span>
+        <span style="color:#8a96a8;font-size:11px;">⏰ ${esc(m.time || '')}</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px;line-height:1.4;">
+        <span style="color:${colorA};font-weight:${wA};font-style:${fsA};flex:1;">${esc(m.a || '?')}</span>
+        <span style="color:#8a96a8;font-size:12px;">vs</span>
+        <span style="color:${colorB};font-weight:${wB};font-style:${fsB};flex:1;text-align:right;">${esc(m.b || '?')}</span>
+      </div>
+      ${scoreLine}
+    </div>`;
   }
 
-  rounds.forEach((r, ci) => {
-    const x = padX + ci * (colW + colGap);
-    const list = byRound[r.key];
-    list.forEach((m, mi) => {
-      let y;
-      if (r.key === 'F') y = yForF();
-      else y = yFor(r.key, mi);
-      svg += renderCard(r.key, m, x, y);
-    });
-  });
+  // 渲染一个轮次段（section）：标题 + 卡片网格
+  function sectionHtml(roundKey, name, sub, columns, list) {
+    const c = colorMap[roundKey];
+    const cardsHtml = list.map(m => cardHtml(roundKey, m)).join('');
+    return `<section class="ko-section" style="margin-bottom:28px;">
+      <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid ${tint(c, 0.30)};">
+        <h3 style="margin:0;color:${c};font-size:18px;font-weight:700;">${name}</h3>
+        <span style="color:#8a96a8;font-size:12px;">${sub}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(${columns},minmax(0,1fr));gap:12px;">
+        ${cardsHtml}
+      </div>
+    </section>`;
+  }
 
-  // 5.2.5) 3rd 卡片（单独渲染在 F 列下方）
-  const fIdx = rounds.length - 1; // F 列索引 = 4
-  const fx = padX + fIdx * (colW + colGap);
+  // 顶部 H2 标题 + 最后更新日期（取自 build.py 注入的 #koUpdated）
+  const lastUpdateEl = document.getElementById('koUpdated');
+  const lastUpdate = lastUpdateEl ? lastUpdateEl.textContent.trim() : '';
+  let html = `<div style="margin-bottom:22px;padding-bottom:14px;border-bottom:2px solid #2a3445;">
+    <h2 style="margin:0 0 6px 0;color:#e8eef5;font-size:22px;font-weight:700;">2026世界杯淘汰赛对阵表与赛程</h2>
+    <div style="color:#8a96a8;font-size:13px;">最后更新：${lastUpdate}</div>
+  </div>`;
+
+  // 4 段常规轮次：R32(4列) / R16(4列) / QF(2列) / SF(2列)
+  const subsByRound = {
+    R32: '第 73-88 场（16 场）',
+    R16: '第 89-96 场（8 场）',
+    QF:  '第 97-100 场（4 场）',
+    SF:  '第 101-102 场（2 场）',
+  };
+  for (const r of rounds.slice(0, 4)) {
+    html += sectionHtml(r.key, r.name, subsByRound[r.key], r.key==='R32'||r.key==='R16' ? 4 : 2, byRound[r.key] || []);
+  }
+
+  // 决赛 + 季军赛 同一段（2 列 grid）
+  const cF = colorMap.F;
+  const c3 = colorMap['3rd'];
   const m3 = byRound['3rd'] && byRound['3rd'][0];
-  if (m3) {
-    // 3rd 自定义：标题额外小标签
-    svg += `<text x="${fx + colW/2}" y="${padY + 8.0 * rowH - 8}" fill="${colorMap['3rd']}" font-size="11" font-weight="700" text-anchor="middle">季军赛</text>`;
-    svg += renderCard('3rd', m3, fx, yFor3rd());
-  }
+  const mF = byRound['F'] && byRound['F'][0];
+  const finalSub = [
+    m3 ? `第 ${m3.no} 场（季军赛）` : '',
+    mF ? `第 ${mF.no} 场（决赛）` : '第 104 场（决赛）',
+  ].filter(Boolean).join(' / ');
+  html += `<section class="ko-section" style="margin-bottom:28px;">
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid ${tint(cF, 0.30)};">
+      <h3 style="margin:0;color:${cF};font-size:18px;font-weight:700;">决赛 &amp; 季军赛</h3>
+      <span style="color:#8a96a8;font-size:12px;">${finalSub}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
+      ${m3 ? cardHtml('3rd', m3) : ''}
+      ${mF ? cardHtml('F',   mF) : ''}
+    </div>
+  </section>`;
 
-  // 5.3) 连线（折线）
-  function drawLine(fromX, fromY, toX, toY, color = '#2a3445') {
-    const midX = (fromX + toX) / 2;
-    svg += `<path d="M ${fromX} ${fromY} L ${midX} ${fromY} L ${midX} ${toY} L ${toX} ${toY}" stroke="${color}" stroke-width="1.5" fill="none"/>`;
-  }
-  function xRight(ci) { return padX + ci * (colW + colGap) + colW; }
-  function xLeft(ci)  { return padX + ci * (colW + colGap); }
-
-  // R32 → R16
-  for (let i = 0; i < 8; i++) {
-    const y1 = yFor('R32', 2*i);
-    const y2 = yFor('R32', 2*i + 1);
-    const yTarget = yFor('R16', i);
-    drawLine(xRight(0), y1, xLeft(1), yTarget);
-    drawLine(xRight(0), y2, xLeft(1), yTarget);
-  }
-  // R16 → QF
-  for (let i = 0; i < 4; i++) {
-    const y1 = yFor('R16', 2*i);
-    const y2 = yFor('R16', 2*i + 1);
-    const yTarget = yFor('QF', i);
-    drawLine(xRight(1), y1, xLeft(2), yTarget);
-    drawLine(xRight(1), y2, xLeft(2), yTarget);
-  }
-  // QF → SF
-  for (let i = 0; i < 2; i++) {
-    const y1 = yFor('QF', 2*i);
-    const y2 = yFor('QF', 2*i + 1);
-    const yTarget = yFor('SF', i);
-    drawLine(xRight(2), y1, xLeft(3), yTarget);
-    drawLine(xRight(2), y2, xLeft(3), yTarget);
-  }
-  // SF → F（沿用主题色让决赛连线醒目）
-  drawLine(xRight(3), yFor('SF', 0), xLeft(4), yForF(), borderT(colorMap.F));
-  drawLine(xRight(3), yFor('SF', 1), xLeft(4), yForF(), borderT(colorMap.F));
-  // SF → 3rd：先向下绕到 F 列下面，再横向连到 F 列下方的 3rd
-  // 路径：SF右边缘 → 向下到 3rd 行 → 横向到 F 列左边缘
-  const sfColRight = xRight(3);
-  const fColLeft   = xLeft(4);
-  const yRoute     = (yFor3rd() + yForF()) / 2;
-  // 从 SF[0] 出发的连线
-  svg += `<path d="M ${sfColRight} ${yFor('SF', 0)}
-           L ${sfColRight + 18} ${yFor('SF', 0)}
-           L ${sfColRight + 18} ${yRoute}
-           L ${fColLeft} ${yRoute}
-           L ${fColLeft} ${yFor3rd()}"
-           stroke="${borderT(colorMap['3rd'])}" stroke-width="1.5" fill="none"/>`;
-  // 从 SF[1] 出发的连线
-  svg += `<path d="M ${sfColRight} ${yFor('SF', 1)}
-           L ${sfColRight + 30} ${yFor('SF', 1)}
-           L ${sfColRight + 30} ${yRoute}
-           L ${fColLeft} ${yRoute}
-           L ${fColLeft} ${yFor3rd()}"
-           stroke="${borderT(colorMap['3rd'])}" stroke-width="1.5" fill="none"/>`;
-
-  svg += '</svg>';
-  container.innerHTML = svg;
+  container.innerHTML = html;
 }
 
 // ==== 实时数据拉取 ====
