@@ -6,7 +6,8 @@ import time
 import urllib.request
 from pathlib import Path
 
-proj = Path(r'D:\VSCodeProject\worldcup2026-bet')
+# 项目根目录：用脚本自身所在目录（兼容 Windows / Linux，避免硬编码绝对路径）
+proj = Path(__file__).resolve().parent
 
 # ==== 赔率模型：Dixon-Coles 双泊松 + ELO + 庄家 margin ====
 # 数据源: eloratings.net（公开 World Football Elo Ratings）
