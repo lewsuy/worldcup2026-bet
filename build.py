@@ -1070,20 +1070,20 @@ function renderKnockout() {
     return `<div class="ko-card" data-no="${m.no}" style="
       background:${bgColor};
       border:${borderWidth}px ${borderStyle} ${borderColor};
-      border-radius:8px;
-      padding:10px 14px;
-      box-shadow:0 2px 6px rgba(0,0,0,0.4);
+      border-radius:10px;
+      padding:11px 13px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.45);
       transition:filter .15s;
       cursor:pointer;
     " onmouseover="this.style.filter='brightness(1.25)'" onmouseout="this.style.filter=''">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:18px;padding:0 6px;background:${tint(c,0.18)};color:${c};border:1px solid ${tint(c,0.55)};border-radius:9px;font-size:10px;font-weight:700;">#${m.no}</span>
-        <span style="color:#8a96a8;font-size:11px;">⏰ ${esc(m.time || '')}</span>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:20px;padding:0 7px;background:${tint(c,0.18)};color:${c};border:1px solid ${tint(c,0.55)};border-radius:10px;font-size:11px;font-weight:700;">#${m.no}</span>
+        <span style="color:#8a96a8;font-size:12px;">⏰ ${esc(m.time || '')}</span>
       </div>
-      <div style="display:flex;align-items:center;justify-content:flex-start;gap:6px;font-size:14px;line-height:1.4;white-space:nowrap;overflow:hidden;">
-        <span style="color:${colorA};font-weight:${wA};font-style:${fsA};flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;max-width:50%;">${esc(m.a || '?')}</span>
-        <span style="color:#8a96a8;font-size:11px;flex:0 0 auto;opacity:0.7;">vs</span>
-        <span style="color:${colorB};font-weight:${wB};font-style:${fsB};flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;max-width:50%;">${esc(m.b || '?')}</span>
+      <div style="display:flex;align-items:center;justify-content:flex-start;gap:6px;font-size:15px;line-height:1.4;white-space:nowrap;overflow:hidden;font-weight:500;">
+        <span style="color:${colorA};font-weight:${wA};font-style:${fsA};flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;max-width:48%;">${esc(m.a || '?')}</span>
+        <span style="color:#8a96a8;font-size:12px;flex:0 0 auto;opacity:0.7;">vs</span>
+        <span style="color:${colorB};font-weight:${wB};font-style:${fsB};flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;max-width:48%;">${esc(m.b || '?')}</span>
       </div>
       ${scoreLine}
     </div>`;
@@ -1112,14 +1112,15 @@ function renderKnockout() {
     <div style="color:#8a96a8;font-size:13px;">最后更新：${lastUpdate}</div>
   </div>`;
 
-  // 5) 渲染 5 列树状对阵图 + 季军赛（F 列下方）
-  // 几何参数：6 列水平排列 + SVG 连线 + 水平滚动
-  const TREE_rowH   = 50;   // 每场 R32 占行高
-  const TREE_colW   = 220;  // 比赛节点宽
-  const TREE_colGap = 50;   // 列间距
-  const TREE_padX   = 20;   // 横向边距
+  // 5) 渲染 5 列树状对阵图 + 季军赛
+  // 布局：6 列水平 + SVG 连线 + 无横向滚动（适配视口宽度，浏览器原生纵向滚动）
+  // 视口 ≈ 1133px → 5 主列 + 1 季军列 + 边距 = 1100px 内 fit
+  const TREE_rowH   = 45;   // 每场 R32 占行高
+  const TREE_colW   = 175;  // 比赛节点宽（适配视口）
+  const TREE_colGap = 12;   // 列间距
+  const TREE_padX   = 8;    // 横向边距
   const TREE_padY   = 50;   // 顶部留出标题
-  const TREE_nodeH  = 76;   // 节点高（时间+队名）
+  const TREE_nodeH  = 80;   // 节点高（时间+队名，稍高更易读）
   const TREE_headerH= 50;   // 轮次标题高
 
   // y 坐标：2 场汇合到中间（树状错开）
@@ -1139,8 +1140,8 @@ function renderKnockout() {
   const TREE_fullH = TREE_headerH + TREE_padY + 9.5 * TREE_rowH + TREE_nodeH + TREE_padY;
   const TREE_lineOffset = TREE_headerH;  // SVG 起点 y
 
-  // 5.5) 打开外层滚动容器 + 内层相对定位容器
-  html += `<div class="ko-tree-wrap" style="overflow-x:auto;overflow-y:visible;padding:6px 0 14px 0;">
+  // 5.5) 打开外层容器（无横向滚动，让浏览器原生纵向滚动）
+  html += `<div class="ko-tree-wrap" style="padding:6px 0 14px 0;">
     <div class="ko-tree" style="position:relative;width:${TREE_fullW}px;height:${TREE_fullH}px;">`;
 
   // 6) 轮次标题（5 主列 + 3rd 单独列）
