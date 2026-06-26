@@ -1,0 +1,5 @@
+# 部署运行时文件（不应入库）
+.wc-bet.pid
+wc-bet.log
+*.log
+*.pid
