@@ -748,11 +748,62 @@ function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
   document.getElementById('tab-' + name).style.display = 'block';
-  if (name === 'groups') renderGroups();
+  if (name === 'groups') { recalcGroupsFromGames(); renderGroups(); }
   if (name === 'games') renderGames();
   if (name === 'slip') renderSlip();
   if (name === 'history') renderHistory();
   if (name === 'settled') renderSettled();
+}
+
+// ==== 根据已结束的小组赛重算 GROUPS 积分 ====
+// 修复：build 时注入的 GROUPS.teams 硬编码积分是 build 时刻的快照。
+// fetchLiveData() 只更新了 GAMES 的比分，没更新 GROUPS，所以切到 groups tab 还是旧数据。
+// 此函数：清零 GROUPS 每个 team 的统计字段，按 GAMES 中 type='group' 且 finished 的比分重新累加。
+function recalcGroupsFromGames() {
+  // 1) 清零所有 team 的统计字段
+  GROUPS.forEach(g => {
+    g.teams.forEach(t => {
+      t.mp = 0; t.w = 0; t.d = 0; t.l = 0;
+      t.gf = 0; t.ga = 0; t.gd = 0; t.pts = 0;
+    });
+  });
+  // 2) 遍历已结束的 group 比赛，累加双方统计
+  GAMES.forEach(g => {
+    if (g.type !== 'group') return;
+    const fin = g.finished === 'TRUE' || g.finished === 'true' || g.finished === true;
+    if (!fin) return;
+    const hs = parseInt(g.home_score);
+    const as = parseInt(g.away_score);
+    if (isNaN(hs) || isNaN(as)) return;
+    const grp = GROUPS.find(x => x.name === g.group);
+    if (!grp) return;
+    const home = grp.teams.find(t => String(t.team_id) === String(g.home_team_id));
+    const away = grp.teams.find(t => String(t.team_id) === String(g.away_team_id));
+    if (!home || !away) return;
+    // mp +1（双方）
+    home.mp++; away.mp++;
+    // 进球
+    home.gf += hs; home.ga += as;
+    away.gf += as; away.ga += hs;
+    // 胜负平 + 积分
+    if (hs > as) {
+      home.w++; home.pts += 3; away.l++;
+    } else if (hs < as) {
+      away.w++; away.pts += 3; home.l++;
+    } else {
+      home.d++; home.pts += 1; away.d++; away.pts += 1;
+    }
+    // 净胜球
+    home.gd = home.gf - home.ga;
+    away.gd = away.gf - away.ga;
+  });
+  // 3) 转回字符串（保持原 GROUPS 数据格式，renderGroups 用 parseInt 比较）
+  GROUPS.forEach(g => {
+    g.teams.forEach(t => {
+      t.mp = String(t.mp); t.w = String(t.w); t.d = String(t.d); t.l = String(t.l);
+      t.gf = String(t.gf); t.ga = String(t.ga); t.gd = String(t.gd); t.pts = String(t.pts);
+    });
+  });
 }
 
 // ==== 小组赛渲染 ====
@@ -882,6 +933,9 @@ async function fetchLiveData(manual) {
     }
     // 重渲染当前可见 Tab 的赛程
     if (document.getElementById('tab-games').style.display !== 'none') renderGames();
+    // 拉取完实时比分后，按已结束的小组赛重算积分，并刷新 groups tab
+    recalcGroupsFromGames();
+    if (document.getElementById('tab-groups').style.display !== 'none') renderGroups();
     if (manual) {
       const ts = new Date().toLocaleTimeString('zh-CN', { hour12: false });
       btn.textContent = `✓ 已更新 ${ts}`;
