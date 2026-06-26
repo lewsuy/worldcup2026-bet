@@ -224,6 +224,9 @@ tr:hover { background: rgba(0, 212, 255, 0.04); }
 /* 小组赛前 2 名直接出线 */
 tr.top2 td { color: #2ecc71; font-weight: 600; }
 tr.top2 .pts-cell { color: #2ecc71; }
+/* 8 个最佳第 3 名（晋级 32 强淘汰赛） */
+tr.top3best td { color: #2ecc71; font-weight: 600; }
+tr.top3best .pts-cell { color: #2ecc71; }
 .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
 .game-card { background: #1a2332; border-radius: 8px; padding: 14px; border: 1px solid #2a3445; position: relative; transition: all 0.2s; }
 .game-card:hover { border-color: #00d4ff; transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0, 212, 255, 0.1); }
@@ -818,6 +821,41 @@ function renderGroups() {
       sel.appendChild(opt);
     });
   }
+
+  // 2026 世界杯：48队→12组×4队
+  // 出线 32 强规则：12 组前 2 名（24 队）+ 8 个最佳第 3 名（共 32 队晋级 Round of 32）
+  // 8 个最佳第 3 名排序规则（FIFA 官方）：pts → gd → gf → w → 纪律分 → 抽签
+  // 注：所有小组赛打完前为"实时预测"，可能随后续比赛结果变化
+  const allGroupGames = GAMES.filter(m => m.type === 'group' || !m.type);
+  const totalGroupMatches = allGroupGames.length;  // 应该是 72 (12组×6场)
+  const finishedGroupMatches = allGroupGames.filter(m => m.finished === 'TRUE' || m.finished === 'true').length;
+  const allGroupStageFinished = (totalGroupMatches === 72 && finishedGroupMatches === 72);
+
+  // 收集每组当前排序后的第 3 名
+  const thirdPlaceTeams = [];
+  GROUPS.forEach(g => {
+    const sorted = [...g.teams].sort((a, b) => {
+      if (parseInt(b.pts) !== parseInt(a.pts)) return parseInt(b.pts) - parseInt(a.pts);
+      if (parseInt(b.gd) !== parseInt(a.gd)) return parseInt(b.gd) - parseInt(a.gd);
+      return parseInt(b.gf) - parseInt(a.gf);
+    });
+    if (sorted[2]) {
+      thirdPlaceTeams.push({
+        team_id: sorted[2].team_id,
+        pts: parseInt(sorted[2].pts) || 0,
+        gd: parseInt(sorted[2].gd) || 0,
+        gf: parseInt(sorted[2].gf) || 0,
+        w: parseInt(sorted[2].w) || 0,
+        group: g.name,
+      });
+    }
+  });
+  // 按 FIFA 规则排序 12 个第 3 名：pts desc, gd desc, gf desc, w desc
+  thirdPlaceTeams.sort((a, b) =>
+    b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || b.w - a.w);
+  // 前 8 名晋级 32 强
+  const top8ThirdIds = new Set(thirdPlaceTeams.slice(0, 8).map(t => t.team_id));
+
   const container = document.getElementById('tab-groups');
   let html = '<div class="groups-grid">';
   GROUPS.forEach(g => {
@@ -834,7 +872,10 @@ function renderGroups() {
         <tbody>`;
     sorted.forEach((t, idx) => {
       const team = teamMap[t.team_id] || { name_en: 'T' + t.team_id, name_cn: 'T' + t.team_id, flag: '' };
-      const rowCls = idx <= 1 ? 'top2' : '';
+      // idx 0-1 = 前 2 名直接晋级；idx 2 + 在 8 个最佳第 3 名内 = 晋级 32 强
+      let rowCls = '';
+      if (idx <= 1) rowCls = 'top2';                                // 直接晋级
+      else if (idx === 2 && top8ThirdIds.has(t.team_id)) rowCls = 'top3best';  // 8 个最佳第 3 名
       html += `<tr class="${rowCls}">
         <td class="num">${idx + 1}</td>
         <td><div class="team-cell">
@@ -850,6 +891,19 @@ function renderGroups() {
     html += '</tbody></table></div>';
   });
   html += '</div>';
+
+  // 在页面底部加说明：哪些是 8 个最佳第 3 名晋级 32 强的队
+  if (!allGroupStageFinished) {
+    const qualifiers = thirdPlaceTeams.slice(0, 8).map((t, i) => {
+      const tm = teamMap[t.team_id] || {};
+      return `${i+1}. ${tm.name_cn || tm.name_en || 'T'+t.team_id} (组 ${t.group}, ${t.pts}分)`;
+    }).join('  ·  ');
+    html += `<div class="footnote" style="margin-top:24px;padding:12px 16px;background:#1a2332;border-left:4px solid #f0b400;border-radius:6px;color:#f0b400;font-size:13px;">
+      ⚠️ 小组赛未全部打完（${finishedGroupMatches}/${totalGroupMatches} 场），8 个最佳第 3 名为实时预测，可能随比赛结果变化。<br>
+      <span style="color:#8a96a8;font-size:12px;">当前预测晋级 32 强（第 3 名）：${qualifiers}</span>
+    </div>`;
+  }
+
   container.innerHTML = html;
 }
 
