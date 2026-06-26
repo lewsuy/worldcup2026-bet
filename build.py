@@ -135,6 +135,13 @@ with open(proj / 'wc_groups.json', encoding='utf-8') as f:
     groups = json.load(f)['groups']
 with open(proj / 'wc_teams.json', encoding='utf-8') as f:
     teams = json.load(f)['teams']
+# 淘汰赛对阵表（来自 wc-2026.org，共 32 场：R32×16 + R16×8 + QF×4 + SF×2 + 3rd + F）
+knockout_path = proj / 'wc_knockouts.json'
+if knockout_path.exists():
+    with open(knockout_path, encoding='utf-8') as f:
+        knockout_matches = json.load(f)
+else:
+    knockout_matches = []
 
 # 国家英文 -> 中文 映射
 COUNTRY_CN = {
@@ -173,6 +180,7 @@ for g in games:
 games_json = json.dumps(games, ensure_ascii=False)
 groups_json = json.dumps(groups, ensure_ascii=False)
 teams_json = json.dumps(teams, ensure_ascii=False)
+knockouts_json = json.dumps(knockout_matches, ensure_ascii=False)
 
 html = r'''<!DOCTYPE html>
 <html lang="zh-CN">
@@ -350,6 +358,7 @@ tr.top3best .pts-cell { color: #2ecc71; }
 
 <div class="tabs">
   <div class="tab active" data-tab="groups" onclick="switchTab('groups')">小组赛</div>
+  <div class="tab" data-tab="knockout" onclick="switchTab('knockout')">淘汰赛</div>
   <div class="tab" data-tab="games" onclick="switchTab('games')">赛程</div>
   <div class="tab" data-tab="slip" onclick="switchTab('slip')">投注单 <span id="slipCount"></span></div>
   <div class="tab" data-tab="history" onclick="switchTab('history')">我的投注</div>
@@ -359,7 +368,16 @@ tr.top3best .pts-cell { color: #2ecc71; }
 <div class="container">
   <!-- TAB 1: 小组赛 -->
   <div id="tab-groups" class="tab-pane"></div>
-  <!-- TAB 2: 赛程 -->
+  <!-- TAB 2: 淘汰赛（思维导图样式） -->
+  <div id="tab-knockout" class="tab-pane" style="display:none">
+    <div class="knockout-legend" style="margin-bottom:14px;display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:#8a96a8;">
+      <span><span style="display:inline-block;width:14px;height:14px;background:#1a2332;border:1px solid #2ecc71;border-radius:3px;vertical-align:middle"></span> 已确定国家队</span>
+      <span><span style="display:inline-block;width:14px;height:14px;background:#1a2332;border:1px dashed #8a96a8;border-radius:3px;vertical-align:middle"></span> 占位符（待定）</span>
+      <span><span style="display:inline-block;width:14px;height:14px;background:#1a2332;border:1px solid #ff4757;border-radius:3px;vertical-align:middle"></span> 已结束（有比分）</span>
+    </div>
+    <div id="knockoutContainer" class="knockout-container" style="overflow-x:auto;overflow-y:hidden;padding-bottom:14px;"></div>
+  </div>
+  <!-- TAB 3: 赛程 -->
   <div id="tab-games" class="tab-pane" style="display:none">
     <div class="filter-bar">
       <label>小组: <select id="filterGroup" onchange="renderGames()"><option value="all">全部</option></select></label>
@@ -459,6 +477,7 @@ tr.top3best .pts-cell { color: #2ecc71; }
 <script type="application/json" id="data-games">__GAMES__</script>
 <script type="application/json" id="data-groups">__GROUPS__</script>
 <script type="application/json" id="data-teams">__TEAMS__</script>
+<script type="application/json" id="data-knockouts">__KNOCKOUTS__</script>
 <script>
 // ==== 用户系统 ====
 const USERS_KEY = 'wc_users';       // [{username, salt, hash, balance, createdAt}]
@@ -703,6 +722,7 @@ function checkSession() {
 const GAMES = JSON.parse(document.getElementById('data-games').textContent);
 const GROUPS = JSON.parse(document.getElementById('data-groups').textContent);
 const TEAMS = JSON.parse(document.getElementById('data-teams').textContent);
+const KNOCKOUTS = JSON.parse(document.getElementById('data-knockouts').textContent);
 
 // teamId -> team map
 const teamMap = {};
@@ -754,6 +774,7 @@ function switchTab(name) {
   document.getElementById('tab-' + name).style.display = 'block';
   if (name === 'groups') { recalcGroupsFromGames(); renderGroups(); }
   if (name === 'games') renderGames();
+  if (name === 'knockout') renderKnockout();
   if (name === 'slip') renderSlip();
   if (name === 'history') renderHistory();
   if (name === 'settled') renderSettled();
@@ -905,6 +926,201 @@ function renderGroups() {
   }
 
   container.innerHTML = html;
+}
+
+// ==== 淘汰赛对阵表（思维导图样式 SVG） ====
+// 32 场对阵来自 wc_knockouts.json：R32(16) → R16(8) → QF(4) → SF(2) → 3rd(1) + F(1)
+// 占位符规则：a/b 字段含"X组首名/次名/第三名"或"W73/W75/L101"等 → 显示为虚线灰色待定
+// 已确定国家队：实线绿色边框
+// 已结束比赛（来自 GAMES 中 type='knockout' 的 finished=TRUE）：显示比分 + 红色边框
+function renderKnockout() {
+  const container = document.getElementById('knockoutContainer');
+  if (!container) return;
+  if (!KNOCKOUTS || !KNOCKOUTS.length) {
+    container.innerHTML = '<div style="padding:40px;text-align:center;color:#8a96a8;">暂无淘汰赛对阵数据（wc_knockouts.json 未生成）</div>';
+    return;
+  }
+
+  // 1) 整理每轮数据
+  const rounds = [
+    {key:'R32', name:'1/16决赛', count:16},
+    {key:'R16', name:'1/8决赛',  count:8},
+    {key:'QF',  name:'1/4决赛',  count:4},
+    {key:'SF',  name:'半决赛',   count:2},
+    {key:'3rd', name:'季军赛',   count:1},
+    {key:'F',   name:'决赛',     count:1},
+  ];
+  // 按 no 排序并按轮次分桶
+  const byRound = {};
+  for (const r of rounds) byRound[r.key] = [];
+  for (const m of KNOCKOUTS) {
+    if (byRound[m.round]) byRound[m.round].push(m);
+  }
+  for (const r of rounds) byRound[r.key].sort((a,b) => a.no - b.no);
+
+  // 2) 几何参数
+  const rowH = 50;            // 每场 R32 占行高
+  const colW = 280;           // 比赛节点宽
+  const colGap = 60;          // 列间距
+  const padX = 30, padY = 70; // 边距（顶部留出轮次标题）
+  const nodeH = 48;           // 节点高
+  const headerH = 40;         // 轮次标题高
+
+  // 3) 计算每轮 y 坐标（垂直居中树状）
+  function yFor(round, idx) {
+    // R32 16 场 → 行 0..15
+    // R16 8 场 → 行中心 = (2*idx+0.5)
+    // QF  4 场 → 行中心 = (4*idx+1.5)
+    // SF  2 场 → 行中心 = (8*idx+3.5)
+    // 3rd → 行 6.5
+    // F   → 行 6.5（与 3rd 错开）— 实际 3rd 单独放最右列
+    const map = {R32: idx, R16: 2*idx+0.5, QF: 4*idx+1.5, SF: 8*idx+3.5, '3rd': 7.5, F: 6.0};
+    return padY + (map[round] || idx) * rowH + nodeH/2;
+  }
+  // 3rd 放 F 之上
+  function yFor3rd() { return padY + 7.5 * rowH + nodeH/2; }
+  function yForF()   { return padY + 6.0 * rowH + nodeH/2; }
+
+  // 4) 找已结束的淘汰赛比分（从 GAMES 中 type='knockout'）
+  // 用 no 在 GAMES 中查（如果 wc_games_slim.json 有 knockout 类型的 game）
+  const koGames = {};
+  for (const g of GAMES) {
+    if (g.type === 'knockout' || g.match_id === 'knockout') {
+      koGames[g.no] = g;
+    }
+  }
+  // 备用：按 id 包含 "knockout" 或 type 包含
+  for (const g of GAMES) {
+    if (g.type && g.type.toLowerCase().includes('knock')) {
+      koGames[g.no] = koGames[g.no] || g;
+    }
+  }
+
+  // 5) 画 SVG
+  const totalW = padX * 2 + rounds.length * colW + (rounds.length - 1) * colGap;
+  const totalH = padY + 16 * rowH + 30;
+  let svg = `<svg width="${totalW}" height="${totalH}" xmlns="http://www.w3.org/2000/svg" style="display:block;font-family:system-ui,'PingFang SC',sans-serif;">`;
+
+  // 5.1) 轮次标题
+  rounds.forEach((r, ci) => {
+    const x = padX + ci * (colW + colGap);
+    const y = 30;
+    const colorMap = {R32:'#3b82f6', R16:'#8b5cf6', QF:'#ec4899', SF:'#f59e0b', '3rd':'#94a3b8', F:'#ef4444'};
+    svg += `<text x="${x + colW/2}" y="${y}" fill="${colorMap[r.key]}" font-size="14" font-weight="700" text-anchor="middle">${r.name}</text>`;
+    svg += `<text x="${x + colW/2}" y="${y + 16}" fill="#8a96a8" font-size="10" text-anchor="middle">第 ${byRound[r.key][0]?.no || ''}${byRound[r.key].length > 1 ? '-' + byRound[r.key][byRound[r.key].length-1].no : ''} 场</text>`;
+  });
+
+  // 5.2) 节点
+  function isPlaceholder(s) {
+    if (!s) return true;
+    if (/^W\d+|^L\d+/.test(s)) return true;   // 上一轮胜者/负者
+    if (/^[A-L]组(首名|次名|第三名)|^第三名[A-Z/]+$/.test(s)) return true;
+    return false;
+  }
+  function isFinished(m) {
+    const g = koGames[m.no];
+    return g && (g.finished === 'TRUE' || g.finished === 'true' || g.finished === true);
+  }
+  function esc(s) { return (s || '').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'})[c]); }
+
+  rounds.forEach((r, ci) => {
+    const x = padX + ci * (colW + colGap);
+    const list = byRound[r.key];
+    list.forEach((m, mi) => {
+      let y;
+      if (r.key === '3rd') y = yFor3rd();
+      else if (r.key === 'F') y = yForF();
+      else y = yFor(r.key, mi);
+
+      const finished = isFinished(m);
+      const placeholderA = isPlaceholder(m.a);
+      const placeholderB = isPlaceholder(m.b);
+
+      // 边框颜色
+      let stroke, fill = '#1a2332', dash = '';
+      if (finished) { stroke = '#ff4757'; }
+      else if (placeholderA && placeholderB) { stroke = '#8a96a8'; dash = '4,3'; }
+      else { stroke = '#2ecc71'; }
+
+      // 矩形
+      svg += `<rect x="${x}" y="${y - nodeH/2}" width="${colW}" height="${nodeH}" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="1.5" ${dash ? `stroke-dasharray="${dash}"` : ''}/>`;
+
+      // 时间（小字顶部）
+      svg += `<text x="${x + 8}" y="${y - nodeH/2 + 14}" fill="#8a96a8" font-size="10">⏰ ${esc(m.time || '')}</text>`;
+      // 第 N 场（右上）
+      svg += `<text x="${x + colW - 8}" y="${y - nodeH/2 + 14}" fill="#8a96a8" font-size="10" text-anchor="end">#${m.no}</text>`;
+
+      // 队伍 A
+      const colorA = placeholderA ? '#8a96a8' : '#e8eef5';
+      const fontStyleA = placeholderA ? 'italic' : 'normal';
+      svg += `<text x="${x + 8}" y="${y - 2}" fill="${colorA}" font-size="13" font-weight="${placeholderA ? 400 : 600}" font-style="${fontStyleA}">${esc(m.a || '?')}</text>`;
+      // 比分 A（如有 finished）
+      if (finished && koGames[m.no]) {
+        const g = koGames[m.no];
+        const ha = g.home_score != null ? g.home_score : '';
+        const aa = g.away_score != null ? g.away_score : '';
+        svg += `<text x="${x + colW - 8}" y="${y - 2}" fill="#ffd700" font-size="14" font-weight="700" text-anchor="end">${ha}</text>`;
+      }
+      // 中间分隔
+      svg += `<text x="${x + 8}" y="${y + 14}" fill="#8a96a8" font-size="11">vs</text>`;
+      // 队伍 B
+      const colorB = placeholderB ? '#8a96a8' : '#e8eef5';
+      const fontStyleB = placeholderB ? 'italic' : 'normal';
+      svg += `<text x="${x + 28}" y="${y + 14}" fill="${colorB}" font-size="13" font-weight="${placeholderB ? 400 : 600}" font-style="${fontStyleB}">${esc(m.b || '?')}</text>`;
+      if (finished && koGames[m.no]) {
+        const g = koGames[m.no];
+        const aa = g.away_score != null ? g.away_score : '';
+        svg += `<text x="${x + colW - 8}" y="${y + 14}" fill="#ffd700" font-size="14" font-weight="700" text-anchor="end">${aa}</text>`;
+      }
+    });
+  });
+
+  // 5.3) 连线（折线）
+  // R32 → R16：第 73+2i/73+2i+1 场 → 第 89+i 场
+  // R16 → QF：第 89+2i/89+2i+1 场 → 第 97+i 场
+  // QF → SF：第 97+2i 场 → 第 101+i 场
+  // SF → F：第 101 胜者 + 第 102 胜者 → 决赛
+  // SF → 3rd：第 101 负者 + 第 102 负者 → 季军赛
+  function drawLine(fromX, fromY, toX, toY) {
+    const midX = (fromX + toX) / 2;
+    svg += `<path d="M ${fromX} ${fromY} L ${midX} ${fromY} L ${midX} ${toY} L ${toX} ${toY}" stroke="#2a3445" stroke-width="1.5" fill="none"/>`;
+  }
+  function xRight(ci) { return padX + ci * (colW + colGap) + colW; }
+  function xLeft(ci) { return padX + ci * (colW + colGap); }
+
+  // R32 → R16
+  for (let i = 0; i < 8; i++) {
+    const y1 = yFor('R32', 2*i);
+    const y2 = yFor('R32', 2*i + 1);
+    const yTarget = yFor('R16', i);
+    drawLine(xRight(0), y1, xLeft(1), yTarget);
+    drawLine(xRight(0), y2, xLeft(1), yTarget);
+  }
+  // R16 → QF
+  for (let i = 0; i < 4; i++) {
+    const y1 = yFor('R16', 2*i);
+    const y2 = yFor('R16', 2*i + 1);
+    const yTarget = yFor('QF', i);
+    drawLine(xRight(1), y1, xLeft(2), yTarget);
+    drawLine(xRight(1), y2, xLeft(2), yTarget);
+  }
+  // QF → SF
+  for (let i = 0; i < 2; i++) {
+    const y1 = yFor('QF', 2*i);
+    const y2 = yFor('QF', 2*i + 1);
+    const yTarget = yFor('SF', i);
+    drawLine(xRight(2), y1, xLeft(3), yTarget);
+    drawLine(xRight(2), y2, xLeft(3), yTarget);
+  }
+  // SF → F
+  drawLine(xRight(3), yFor('SF', 0), xLeft(5), yForF());
+  drawLine(xRight(3), yFor('SF', 1), xLeft(5), yForF());
+  // SF → 3rd
+  drawLine(xRight(3), yFor('SF', 0), xLeft(4), yFor3rd());
+  drawLine(xRight(3), yFor('SF', 1), xLeft(4), yFor3rd());
+
+  svg += '</svg>';
+  container.innerHTML = svg;
 }
 
 // ==== 实时数据拉取 ====
@@ -1495,7 +1711,7 @@ if (!checkSession()) showAuthModal();
 </body>
 </html>'''
 
-html = html.replace('__GAMES__', games_json).replace('__GROUPS__', groups_json).replace('__TEAMS__', teams_json)
+html = html.replace('__GAMES__', games_json).replace('__GROUPS__', groups_json).replace('__TEAMS__', teams_json).replace('__KNOCKOUTS__', knockouts_json)
 out = proj / 'index.html'
 out.write_text(html, encoding='utf-8')
 print(f"[OK] {out}  size={out.stat().st_size} bytes")
