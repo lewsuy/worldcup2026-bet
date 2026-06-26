@@ -371,9 +371,14 @@ tr.top3best .pts-cell { color: #2ecc71; }
   <!-- TAB 2: 淘汰赛（思维导图样式） -->
   <div id="tab-knockout" class="tab-pane" style="display:none">
     <div class="knockout-legend" style="margin-bottom:14px;display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:#8a96a8;">
-      <span><span style="display:inline-block;width:14px;height:14px;background:#1a2332;border:1px solid #2ecc71;border-radius:3px;vertical-align:middle"></span> 已确定国家队</span>
-      <span><span style="display:inline-block;width:14px;height:14px;background:#1a2332;border:1px dashed #8a96a8;border-radius:3px;vertical-align:middle"></span> 占位符（待定）</span>
-      <span><span style="display:inline-block;width:14px;height:14px;background:#1a2332;border:1px solid #ff4757;border-radius:3px;vertical-align:middle"></span> 已结束（有比分）</span>
+      <span><span style="display:inline-block;width:14px;height:14px;background:rgba(59,130,246,0.10);border:1px solid rgba(59,130,246,0.55);border-radius:3px;vertical-align:middle"></span> 1/16 蓝</span>
+      <span><span style="display:inline-block;width:14px;height:14px;background:rgba(139,92,246,0.10);border:1px solid rgba(139,92,246,0.55);border-radius:3px;vertical-align:middle"></span> 1/8 紫</span>
+      <span><span style="display:inline-block;width:14px;height:14px;background:rgba(236,72,153,0.10);border:1px solid rgba(236,72,153,0.55);border-radius:3px;vertical-align:middle"></span> 1/4 粉</span>
+      <span><span style="display:inline-block;width:14px;height:14px;background:rgba(245,158,11,0.10);border:1px solid rgba(245,158,11,0.55);border-radius:3px;vertical-align:middle"></span> 半决赛 橙</span>
+      <span><span style="display:inline-block;width:14px;height:14px;background:rgba(251,191,36,0.10);border:1px solid rgba(251,191,36,0.55);border-radius:3px;vertical-align:middle"></span> 决赛 金</span>
+      <span><span style="display:inline-block;width:14px;height:14px;background:rgba(148,163,184,0.10);border:1px solid rgba(148,163,184,0.55);border-radius:3px;vertical-align:middle"></span> 季军赛 灰</span>
+      <span><span style="display:inline-block;width:14px;height:14px;background:#1a2332;border:1px dashed #8a96a8;border-radius:3px;vertical-align:middle"></span> 占位符</span>
+      <span><span style="display:inline-block;width:14px;height:14px;background:rgba(255,71,87,0.12);border:2px solid #ff4757;border-radius:3px;vertical-align:middle"></span> 已结束</span>
     </div>
     <div id="knockoutContainer" class="knockout-container" style="overflow-x:auto;overflow-y:hidden;padding-bottom:14px;"></div>
   </div>
@@ -928,11 +933,13 @@ function renderGroups() {
   container.innerHTML = html;
 }
 
-// ==== 淘汰赛对阵表（思维导图样式 SVG） ====
+// ==== 淘汰赛对阵表（思维导图样式 SVG）====
 // 32 场对阵来自 wc_knockouts.json：R32(16) → R16(8) → QF(4) → SF(2) → 3rd(1) + F(1)
-// 占位符规则：a/b 字段含"X组首名/次名/第三名"或"W73/W75/L101"等 → 显示为虚线灰色待定
-// 已确定国家队：实线绿色边框
-// 已结束比赛（来自 GAMES 中 type='knockout' 的 finished=TRUE）：显示比分 + 红色边框
+// 布局：5 列 R32/R16/QF/SF/F，季军赛 3rd 单独放在 F 列下方
+// 颜色：按轮次主题色（蓝→紫→粉→橙→金），淡色背景 + 半透明边框
+// 已结束：保持红色 #ff4757 边框 + 显示比分（最高优先级覆盖主题色）
+// 占位符：灰色虚线 #8a96a8 + dasharray
+// 已确定国家队：实线主题色边框
 function renderKnockout() {
   const container = document.getElementById('knockoutContainer');
   if (!container) return;
@@ -941,55 +948,70 @@ function renderKnockout() {
     return;
   }
 
-  // 1) 整理每轮数据
+  // 1) 整理每轮数据（5 列布局：3rd 单独渲染在 F 下方）
   const rounds = [
     {key:'R32', name:'1/16决赛', count:16},
     {key:'R16', name:'1/8决赛',  count:8},
     {key:'QF',  name:'1/4决赛',  count:4},
     {key:'SF',  name:'半决赛',   count:2},
-    {key:'3rd', name:'季军赛',   count:1},
     {key:'F',   name:'决赛',     count:1},
   ];
-  // 按 no 排序并按轮次分桶
+  // 轮次主题色（按层级递进：蓝→紫→粉→橙→金）
+  const colorMap = {
+    R32: '#3b82f6',  // 蓝 1/16
+    R16: '#8b5cf6',  // 紫 1/8
+    QF:  '#ec4899',  // 粉 1/4
+    SF:  '#f59e0b',  // 橙 半决赛
+    F:   '#fbbf24',  // 金 决赛
+    '3rd':'#94a3b8', // 灰 季军赛
+  };
+  // 各轮次 hex → rgba(..., 0.08) 用于淡背景填充
+  function tint(hex, alpha) {
+    const r = parseInt(hex.slice(1,3), 16);
+    const g = parseInt(hex.slice(3,5), 16);
+    const b = parseInt(hex.slice(5,7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+  const bgTint   = r => tint(r, 0.10);
+  const borderT  = r => tint(r, 0.55);
+
   const byRound = {};
   for (const r of rounds) byRound[r.key] = [];
+  byRound['3rd'] = []; // 季军赛单独渲染在 F 列下方，但需要收集数据
   for (const m of KNOCKOUTS) {
     if (byRound[m.round]) byRound[m.round].push(m);
   }
-  for (const r of rounds) byRound[r.key].sort((a,b) => a.no - b.no);
+  for (const k of Object.keys(byRound)) byRound[k].sort((a,b) => a.no - b.no);
 
   // 2) 几何参数
-  const rowH = 50;            // 每场 R32 占行高
+  const rowH = 80;            // 每场 R32 占行高（增大以容纳 76px 卡片）
   const colW = 280;           // 比赛节点宽
   const colGap = 60;          // 列间距
-  const padX = 30, padY = 70; // 边距（顶部留出轮次标题）
-  const nodeH = 48;           // 节点高
-  const headerH = 40;         // 轮次标题高
+  const padX = 30, padY = 90; // 边距（顶部留出轮次标题 + 阴影空间）
+  const nodeH = 76;           // 节点高：容纳时间行 + 间距 + 队名行
+  const headerH = 50;         // 轮次标题高
 
   // 3) 计算每轮 y 坐标（垂直居中树状）
+  // R32 16 场 → 行 0..15
+  // R16 8 场  → 行中心 = (2*idx+0.5)
+  // QF  4 场  → 行中心 = (4*idx+1.5)
+  // SF  2 场  → 行中心 = (8*idx+3.5)
+  // F   → 行 6.0
+  // 3rd → 行 8.5（紧贴 F 列下方）
   function yFor(round, idx) {
-    // R32 16 场 → 行 0..15
-    // R16 8 场 → 行中心 = (2*idx+0.5)
-    // QF  4 场 → 行中心 = (4*idx+1.5)
-    // SF  2 场 → 行中心 = (8*idx+3.5)
-    // 3rd → 行 6.5
-    // F   → 行 6.5（与 3rd 错开）— 实际 3rd 单独放最右列
-    const map = {R32: idx, R16: 2*idx+0.5, QF: 4*idx+1.5, SF: 8*idx+3.5, '3rd': 7.5, F: 6.0};
+    const map = {R32: idx, R16: 2*idx+0.5, QF: 4*idx+1.5, SF: 8*idx+3.5, F: 6.0};
     return padY + (map[round] || idx) * rowH + nodeH/2;
   }
-  // 3rd 放 F 之上
-  function yFor3rd() { return padY + 7.5 * rowH + nodeH/2; }
   function yForF()   { return padY + 6.0 * rowH + nodeH/2; }
+  function yFor3rd() { return padY + 8.5 * rowH + nodeH/2; }
 
   // 4) 找已结束的淘汰赛比分（从 GAMES 中 type='knockout'）
-  // 用 no 在 GAMES 中查（如果 wc_games_slim.json 有 knockout 类型的 game）
   const koGames = {};
   for (const g of GAMES) {
     if (g.type === 'knockout' || g.match_id === 'knockout') {
       koGames[g.no] = g;
     }
   }
-  // 备用：按 id 包含 "knockout" 或 type 包含
   for (const g of GAMES) {
     if (g.type && g.type.toLowerCase().includes('knock')) {
       koGames[g.no] = koGames[g.no] || g;
@@ -998,22 +1020,35 @@ function renderKnockout() {
 
   // 5) 画 SVG
   const totalW = padX * 2 + rounds.length * colW + (rounds.length - 1) * colGap;
-  const totalH = padY + 16 * rowH + 30;
+  // totalH 必须容纳 F 列下面 3rd 的位置（行 8.5 + 1 行底部空白）
+  const totalH = padY + 10 * rowH + 30;
   let svg = `<svg width="${totalW}" height="${totalH}" xmlns="http://www.w3.org/2000/svg" style="display:block;font-family:system-ui,'PingFang SC',sans-serif;">`;
 
-  // 5.1) 轮次标题
+  // 5.0) defs：阴影 filter
+  svg += `<defs>
+    <filter id="koShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>`;
+
+  // 5.1) 轮次标题（颜色按主题色）
   rounds.forEach((r, ci) => {
     const x = padX + ci * (colW + colGap);
-    const y = 30;
-    const colorMap = {R32:'#3b82f6', R16:'#8b5cf6', QF:'#ec4899', SF:'#f59e0b', '3rd':'#94a3b8', F:'#ef4444'};
-    svg += `<text x="${x + colW/2}" y="${y}" fill="${colorMap[r.key]}" font-size="14" font-weight="700" text-anchor="middle">${r.name}</text>`;
-    svg += `<text x="${x + colW/2}" y="${y + 16}" fill="#8a96a8" font-size="10" text-anchor="middle">第 ${byRound[r.key][0]?.no || ''}${byRound[r.key].length > 1 ? '-' + byRound[r.key][byRound[r.key].length-1].no : ''} 场</text>`;
+    const y = 35;
+    const c = colorMap[r.key];
+    // 主题色徽标背景
+    svg += `<rect x="${x + colW/2 - 50}" y="${y - 18}" width="100" height="26" rx="13" fill="${bgTint(c)}" stroke="${borderT(c)}" stroke-width="1"/>`;
+    svg += `<text x="${x + colW/2}" y="${y}" fill="${c}" font-size="14" font-weight="700" text-anchor="middle">${r.name}</text>`;
+    svg += `<text x="${x + colW/2}" y="${y + 18}" fill="#8a96a8" font-size="10" text-anchor="middle">第 ${byRound[r.key][0]?.no || ''}${byRound[r.key].length > 1 ? '-' + byRound[r.key][byRound[r.key].length-1].no : ''} 场</text>`;
   });
 
   // 5.2) 节点
   function isPlaceholder(s) {
     if (!s) return true;
-    if (/^W\d+|^L\d+/.test(s)) return true;   // 上一轮胜者/负者
+    if (/^W\d+|^L\d+/.test(s)) return true;
     if (/^[A-L]组(首名|次名|第三名)|^第三名[A-Z/]+$/.test(s)) return true;
     return false;
   }
@@ -1023,70 +1058,112 @@ function renderKnockout() {
   }
   function esc(s) { return (s || '').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'})[c]); }
 
+  function renderCard(roundKey, m, x, y) {
+    const themeColor = colorMap[roundKey];
+    const finished = isFinished(m);
+    const placeholderA = isPlaceholder(m.a);
+    const placeholderB = isPlaceholder(m.b);
+
+    // 边框优先级：已结束(红) > 占位符(灰虚) > 主题色边框
+    let stroke, fill, dash = '', strokeWidth = 1.5;
+    if (finished) {
+      stroke = '#ff4757';
+      fill = 'rgba(255,71,87,0.12)';
+      strokeWidth = 2;
+    } else if (placeholderA && placeholderB) {
+      stroke = '#8a96a8';
+      fill = '#1a2332';
+      dash = '4,3';
+    } else {
+      stroke = borderT(themeColor);
+      fill = bgTint(themeColor);
+    }
+
+    // hover：高亮时增加亮度
+    const hoverOn  = `this.setAttribute('data-hover','1');this.style.filter='brightness(1.25)';`;
+    const hoverOff = `this.removeAttribute('data-hover');this.style.filter='';`;
+
+    let g = `<g data-no="${m.no}" style="cursor:pointer;transition:filter .15s;" onmouseover="${hoverOn}" onmouseout="${hoverOff}">`;
+
+    // 矩形（带阴影）
+    g += `<rect x="${x}" y="${y - nodeH/2}" width="${colW}" height="${nodeH}" rx="8" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" ${dash ? `stroke-dasharray="${dash}"` : ''} filter="url(#koShadow)"/>`;
+
+    // 第 N 场（小圆点标签，左上角）—— 不与主文字抢眼
+    g += `<circle cx="${x + 14}" cy="${y - nodeH/2 + 12}" r="9" fill="${bgTint(themeColor)}" stroke="${borderT(themeColor)}" stroke-width="1"/>`;
+    g += `<text x="${x + 14}" y="${y - nodeH/2 + 15}" fill="${themeColor}" font-size="9" font-weight="700" text-anchor="middle">${m.no}</text>`;
+
+    // 时间（独占一行顶部，灰色小字）—— 在圆点标签右侧
+    g += `<text x="${x + 28}" y="${y - nodeH/2 + 16}" fill="#8a96a8" font-size="11">⏰ ${esc(m.time || '')}</text>`;
+
+    // 队A vs 队B（独占一行，大字白色）—— y = y + 8
+    const teamFontSize = 14;
+    const teamY = y + 8;
+    const colorA = placeholderA ? '#8a96a8' : '#e8eef5';
+    const colorB = placeholderB ? '#8a96a8' : '#e8eef5';
+    const styleA = placeholderA ? 'font-style:italic' : '';
+    const styleB = placeholderB ? 'font-style:italic' : '';
+    const weightA = placeholderA ? 400 : 600;
+    const weightB = placeholderB ? 400 : 600;
+
+    // 队 A
+    g += `<text x="${x + 14}" y="${teamY}" fill="${colorA}" font-size="${teamFontSize}" font-weight="${weightA}" style="${styleA}">${esc(m.a || '?')}</text>`;
+
+    // 比分 A（如 finished）—— 队名右侧金色
+    if (finished && koGames[m.no]) {
+      const ginfo = koGames[m.no];
+      const ha = ginfo.home_score != null ? ginfo.home_score : '';
+      g += `<text x="${x + colW/2 + 20}" y="${teamY}" fill="#ffd700" font-size="15" font-weight="700" text-anchor="middle">${ha}</text>`;
+    }
+
+    // vs 分隔（已完成比赛则显示分数，否则 vs）
+    if (finished && koGames[m.no]) {
+      g += `<text x="${x + colW/2}" y="${teamY}" fill="#ffd700" font-size="13" font-weight="700" text-anchor="middle">-</text>`;
+    } else {
+      g += `<text x="${x + colW/2}" y="${teamY}" fill="#8a96a8" font-size="12" text-anchor="middle">vs</text>`;
+    }
+
+    // 比分 B（如 finished）
+    if (finished && koGames[m.no]) {
+      const ginfo = koGames[m.no];
+      const aa = ginfo.away_score != null ? ginfo.away_score : '';
+      g += `<text x="${x + colW/2 + 50}" y="${teamY}" fill="#ffd700" font-size="15" font-weight="700" text-anchor="middle">${aa}</text>`;
+    }
+
+    // 队 B
+    g += `<text x="${x + colW - 14}" y="${teamY}" fill="${colorB}" font-size="${teamFontSize}" font-weight="${weightB}" text-anchor="end" style="${styleB}">${esc(m.b || '?')}</text>`;
+
+    g += `</g>`;
+    return g;
+  }
+
   rounds.forEach((r, ci) => {
     const x = padX + ci * (colW + colGap);
     const list = byRound[r.key];
     list.forEach((m, mi) => {
       let y;
-      if (r.key === '3rd') y = yFor3rd();
-      else if (r.key === 'F') y = yForF();
+      if (r.key === 'F') y = yForF();
       else y = yFor(r.key, mi);
-
-      const finished = isFinished(m);
-      const placeholderA = isPlaceholder(m.a);
-      const placeholderB = isPlaceholder(m.b);
-
-      // 边框颜色
-      let stroke, fill = '#1a2332', dash = '';
-      if (finished) { stroke = '#ff4757'; }
-      else if (placeholderA && placeholderB) { stroke = '#8a96a8'; dash = '4,3'; }
-      else { stroke = '#2ecc71'; }
-
-      // 矩形
-      svg += `<rect x="${x}" y="${y - nodeH/2}" width="${colW}" height="${nodeH}" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="1.5" ${dash ? `stroke-dasharray="${dash}"` : ''}/>`;
-
-      // 时间（小字顶部）
-      svg += `<text x="${x + 8}" y="${y - nodeH/2 + 14}" fill="#8a96a8" font-size="10">⏰ ${esc(m.time || '')}</text>`;
-      // 第 N 场（右上）
-      svg += `<text x="${x + colW - 8}" y="${y - nodeH/2 + 14}" fill="#8a96a8" font-size="10" text-anchor="end">#${m.no}</text>`;
-
-      // 队伍 A
-      const colorA = placeholderA ? '#8a96a8' : '#e8eef5';
-      const fontStyleA = placeholderA ? 'italic' : 'normal';
-      svg += `<text x="${x + 8}" y="${y - 2}" fill="${colorA}" font-size="13" font-weight="${placeholderA ? 400 : 600}" font-style="${fontStyleA}">${esc(m.a || '?')}</text>`;
-      // 比分 A（如有 finished）
-      if (finished && koGames[m.no]) {
-        const g = koGames[m.no];
-        const ha = g.home_score != null ? g.home_score : '';
-        const aa = g.away_score != null ? g.away_score : '';
-        svg += `<text x="${x + colW - 8}" y="${y - 2}" fill="#ffd700" font-size="14" font-weight="700" text-anchor="end">${ha}</text>`;
-      }
-      // 中间分隔
-      svg += `<text x="${x + 8}" y="${y + 14}" fill="#8a96a8" font-size="11">vs</text>`;
-      // 队伍 B
-      const colorB = placeholderB ? '#8a96a8' : '#e8eef5';
-      const fontStyleB = placeholderB ? 'italic' : 'normal';
-      svg += `<text x="${x + 28}" y="${y + 14}" fill="${colorB}" font-size="13" font-weight="${placeholderB ? 400 : 600}" font-style="${fontStyleB}">${esc(m.b || '?')}</text>`;
-      if (finished && koGames[m.no]) {
-        const g = koGames[m.no];
-        const aa = g.away_score != null ? g.away_score : '';
-        svg += `<text x="${x + colW - 8}" y="${y + 14}" fill="#ffd700" font-size="14" font-weight="700" text-anchor="end">${aa}</text>`;
-      }
+      svg += renderCard(r.key, m, x, y);
     });
   });
 
+  // 5.2.5) 3rd 卡片（单独渲染在 F 列下方）
+  const fIdx = rounds.length - 1; // F 列索引 = 4
+  const fx = padX + fIdx * (colW + colGap);
+  const m3 = byRound['3rd'] && byRound['3rd'][0];
+  if (m3) {
+    // 3rd 自定义：标题额外小标签
+    svg += `<text x="${fx + colW/2}" y="${padY + 8.0 * rowH - 8}" fill="${colorMap['3rd']}" font-size="11" font-weight="700" text-anchor="middle">季军赛</text>`;
+    svg += renderCard('3rd', m3, fx, yFor3rd());
+  }
+
   // 5.3) 连线（折线）
-  // R32 → R16：第 73+2i/73+2i+1 场 → 第 89+i 场
-  // R16 → QF：第 89+2i/89+2i+1 场 → 第 97+i 场
-  // QF → SF：第 97+2i 场 → 第 101+i 场
-  // SF → F：第 101 胜者 + 第 102 胜者 → 决赛
-  // SF → 3rd：第 101 负者 + 第 102 负者 → 季军赛
-  function drawLine(fromX, fromY, toX, toY) {
+  function drawLine(fromX, fromY, toX, toY, color = '#2a3445') {
     const midX = (fromX + toX) / 2;
-    svg += `<path d="M ${fromX} ${fromY} L ${midX} ${fromY} L ${midX} ${toY} L ${toX} ${toY}" stroke="#2a3445" stroke-width="1.5" fill="none"/>`;
+    svg += `<path d="M ${fromX} ${fromY} L ${midX} ${fromY} L ${midX} ${toY} L ${toX} ${toY}" stroke="${color}" stroke-width="1.5" fill="none"/>`;
   }
   function xRight(ci) { return padX + ci * (colW + colGap) + colW; }
-  function xLeft(ci) { return padX + ci * (colW + colGap); }
+  function xLeft(ci)  { return padX + ci * (colW + colGap); }
 
   // R32 → R16
   for (let i = 0; i < 8; i++) {
@@ -1112,12 +1189,28 @@ function renderKnockout() {
     drawLine(xRight(2), y1, xLeft(3), yTarget);
     drawLine(xRight(2), y2, xLeft(3), yTarget);
   }
-  // SF → F
-  drawLine(xRight(3), yFor('SF', 0), xLeft(5), yForF());
-  drawLine(xRight(3), yFor('SF', 1), xLeft(5), yForF());
-  // SF → 3rd
-  drawLine(xRight(3), yFor('SF', 0), xLeft(4), yFor3rd());
-  drawLine(xRight(3), yFor('SF', 1), xLeft(4), yFor3rd());
+  // SF → F（沿用主题色让决赛连线醒目）
+  drawLine(xRight(3), yFor('SF', 0), xLeft(4), yForF(), borderT(colorMap.F));
+  drawLine(xRight(3), yFor('SF', 1), xLeft(4), yForF(), borderT(colorMap.F));
+  // SF → 3rd：先向下绕到 F 列下面，再横向连到 F 列下方的 3rd
+  // 路径：SF右边缘 → 向下到 3rd 行 → 横向到 F 列左边缘
+  const sfColRight = xRight(3);
+  const fColLeft   = xLeft(4);
+  const yRoute     = (yFor3rd() + yForF()) / 2;
+  // 从 SF[0] 出发的连线
+  svg += `<path d="M ${sfColRight} ${yFor('SF', 0)}
+           L ${sfColRight + 18} ${yFor('SF', 0)}
+           L ${sfColRight + 18} ${yRoute}
+           L ${fColLeft} ${yRoute}
+           L ${fColLeft} ${yFor3rd()}"
+           stroke="${borderT(colorMap['3rd'])}" stroke-width="1.5" fill="none"/>`;
+  // 从 SF[1] 出发的连线
+  svg += `<path d="M ${sfColRight} ${yFor('SF', 1)}
+           L ${sfColRight + 30} ${yFor('SF', 1)}
+           L ${sfColRight + 30} ${yRoute}
+           L ${fColLeft} ${yRoute}
+           L ${fColLeft} ${yFor3rd()}"
+           stroke="${borderT(colorMap['3rd'])}" stroke-width="1.5" fill="none"/>`;
 
   svg += '</svg>';
   container.innerHTML = svg;
