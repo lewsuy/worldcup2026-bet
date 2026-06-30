@@ -24,15 +24,15 @@
     "no": 86,
     "round": "R32",
     "time": "7月3日 18:00",
-    "a": "Argentina",
-    "b": "Cape Verde"
+    "a": "阿根廷",
+    "b": "佛得角"
   },
   {
     "no": 88,
     "round": "R32",
     "time": "7月3日 13:00",
-    "a": "Australia",
-    "b": "Egypt"
+    "a": "澳大利亚",
+    "b": "埃及"
   },
   {
     "no": 100,
@@ -45,8 +45,8 @@
     "no": 87,
     "round": "R32",
     "time": "7月3日 20:30",
-    "a": "Colombia",
-    "b": "Ghana"
+    "a": "哥伦比亚",
+    "b": "加纳"
   },
   {
     "no": 98,
@@ -59,22 +59,22 @@
     "no": 76,
     "round": "R32",
     "time": "6月29日 12:00",
-    "a": "Brazil",
-    "b": "Japan"
+    "a": "巴西",
+    "b": "日本"
   },
   {
     "no": 83,
     "round": "R32",
     "time": "7月2日 19:00",
-    "a": "Portugal",
-    "b": "Croatia"
+    "a": "葡萄牙",
+    "b": "克罗地亚"
   },
   {
     "no": 85,
     "round": "R32",
     "time": "7月2日 20:00",
-    "a": "Switzerland",
-    "b": "Algeria"
+    "a": "瑞士",
+    "b": "阿尔及利亚"
   },
   {
     "no": 93,
@@ -94,29 +94,29 @@
     "no": 73,
     "round": "R32",
     "time": "6月28日 12:00",
-    "a": "South Africa",
-    "b": "Canada"
+    "a": "南非",
+    "b": "加拿大"
   },
   {
     "no": 77,
     "round": "R32",
     "time": "6月30日 17:00",
-    "a": "France",
-    "b": "Sweden"
+    "a": "法国",
+    "b": "瑞典"
   },
   {
     "no": 84,
     "round": "R32",
     "time": "7月2日 12:00",
-    "a": "Spain",
-    "b": "Austria"
+    "a": "西班牙",
+    "b": "奥地利"
   },
   {
     "no": 90,
     "round": "R16",
     "time": "7月4日 12:00",
-    "a": "Canada",
-    "b": "Morocco"
+    "a": "加拿大",
+    "b": "摩洛哥"
   },
   {
     "no": 92,
@@ -136,7 +136,7 @@
     "no": 91,
     "round": "R16",
     "time": "7月5日 16:00",
-    "a": "Brazil",
+    "a": "巴西",
     "b": "?"
   },
   {
@@ -157,15 +157,15 @@
     "no": 74,
     "round": "R32",
     "time": "6月29日 16:30",
-    "a": "Germany",
-    "b": "Paraguay"
+    "a": "德国",
+    "b": "巴拉圭"
   },
   {
     "no": 81,
     "round": "R32",
     "time": "7月1日 17:00",
-    "a": "United States",
-    "b": "Bosnia and Herzegovina"
+    "a": "美国",
+    "b": "波黑"
   },
   {
     "no": 103,
@@ -178,42 +178,42 @@
     "no": 75,
     "round": "R32",
     "time": "6月29日 19:00",
-    "a": "Netherlands",
-    "b": "Morocco"
+    "a": "荷兰",
+    "b": "摩洛哥"
   },
   {
     "no": 78,
     "round": "R32",
     "time": "6月30日 12:00",
-    "a": "Ivory Coast",
-    "b": "Norway"
+    "a": "科特迪瓦",
+    "b": "挪威"
   },
   {
     "no": 79,
     "round": "R32",
     "time": "6月30日 19:00",
-    "a": "Mexico",
-    "b": "Ecuador"
+    "a": "墨西哥",
+    "b": "厄瓜多尔"
   },
   {
     "no": 80,
     "round": "R32",
     "time": "7月1日 12:00",
-    "a": "England",
-    "b": "Democratic Republic of the Congo"
+    "a": "英格兰",
+    "b": "刚果(金)"
   },
   {
     "no": 82,
     "round": "R32",
     "time": "7月1日 13:00",
-    "a": "Belgium",
-    "b": "Senegal"
+    "a": "比利时",
+    "b": "塞内加尔"
   },
   {
     "no": 89,
     "round": "R16",
     "time": "7月4日 17:00",
-    "a": "Paraguay",
+    "a": "巴拉圭",
     "b": "?"
   },
   {
