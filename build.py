@@ -1402,10 +1402,13 @@ function renderGames() {
   });
   // 排序：进行中 → 未开始（按时间升序，最早在前）→ 已结束（按时间降序，最新结束在前）
   const toTs = g => {
-    // local_date 格式 "MM/DD/YYYY HH:MM"，转成可比较的时间戳
-    const m = /(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/.exec(g.local_date || '');
-    if (!m) return 0;
-    return Date.UTC(+m[3], +m[1]-1, +m[2], +m[4], +m[5]);
+    // local_date 格式可能是 "YYYY/MM/DD HH" 或 "MM/DD/YYYY HH:MM"
+    const d = g.local_date || '';
+    let m = /(\d{4})\/(\d{2})\/(\d{2})\s+(\d{1,2})/.exec(d);  // YYYY/MM/DD HH
+    if (m) return Date.UTC(+m[1], +m[2]-1, +m[3], +m[4]);
+    m = /(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/.exec(d);  // MM/DD/YYYY HH:MM
+    if (m) return Date.UTC(+m[3], +m[1]-1, +m[2], +m[4], +m[5]);
+    return 0;
   };
   list.sort((a, b) => {
     const sa = gameStatus(a), sb = gameStatus(b);
