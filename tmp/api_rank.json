@@ -1,0 +1,686 @@
+[
+  {
+    "team_group": "A",
+    "team_rank": [
+      {
+        "id": "1",
+        "team_name": "墨西哥",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/A1.png",
+        "team_group": "A",
+        "win": "3",
+        "lose": "0",
+        "draw": "0",
+        "score": "9",
+        "goal": "6",
+        "miss_goal": "0",
+        "rank": "1"
+      },
+      {
+        "id": "3",
+        "team_name": "南非",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/A3.png",
+        "team_group": "A",
+        "win": "1",
+        "lose": "1",
+        "draw": "1",
+        "score": "4",
+        "goal": "2",
+        "miss_goal": "3",
+        "rank": "2"
+      },
+      {
+        "id": "4",
+        "team_name": "韩国",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/A4.png",
+        "team_group": "A",
+        "win": "1",
+        "lose": "2",
+        "draw": "0",
+        "score": "3",
+        "goal": "2",
+        "miss_goal": "3",
+        "rank": "3"
+      },
+      {
+        "id": "2",
+        "team_name": "捷克",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/A2.png",
+        "team_group": "A",
+        "win": "0",
+        "lose": "2",
+        "draw": "1",
+        "score": "1",
+        "goal": "2",
+        "miss_goal": "6",
+        "rank": "4"
+      }
+    ]
+  },
+  {
+    "team_group": "B",
+    "team_rank": [
+      {
+        "id": "8",
+        "team_name": "瑞士",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/B8.png",
+        "team_group": "B",
+        "win": "2",
+        "lose": "0",
+        "draw": "1",
+        "score": "7",
+        "goal": "7",
+        "miss_goal": "3",
+        "rank": "1"
+      },
+      {
+        "id": "5",
+        "team_name": "加拿大",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/B5.png",
+        "team_group": "B",
+        "win": "1",
+        "lose": "1",
+        "draw": "1",
+        "score": "4",
+        "goal": "8",
+        "miss_goal": "3",
+        "rank": "2"
+      },
+      {
+        "id": "6",
+        "team_name": "波黑",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/B6.png",
+        "team_group": "B",
+        "win": "1",
+        "lose": "1",
+        "draw": "1",
+        "score": "4",
+        "goal": "5",
+        "miss_goal": "6",
+        "rank": "3"
+      },
+      {
+        "id": "7",
+        "team_name": "卡塔尔",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/B7.png",
+        "team_group": "B",
+        "win": "0",
+        "lose": "2",
+        "draw": "1",
+        "score": "1",
+        "goal": "2",
+        "miss_goal": "10",
+        "rank": "4"
+      }
+    ]
+  },
+  {
+    "team_group": "C",
+    "team_rank": [
+      {
+        "id": "9",
+        "team_name": "巴西",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/C9.png",
+        "team_group": "C",
+        "win": "2",
+        "lose": "0",
+        "draw": "1",
+        "score": "7",
+        "goal": "7",
+        "miss_goal": "1",
+        "rank": "1"
+      },
+      {
+        "id": "10",
+        "team_name": "摩洛哥",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/C10.png",
+        "team_group": "C",
+        "win": "2",
+        "lose": "0",
+        "draw": "1",
+        "score": "7",
+        "goal": "6",
+        "miss_goal": "3",
+        "rank": "2"
+      },
+      {
+        "id": "12",
+        "team_name": "苏格兰",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/C12.png",
+        "team_group": "C",
+        "win": "1",
+        "lose": "2",
+        "draw": "0",
+        "score": "3",
+        "goal": "1",
+        "miss_goal": "4",
+        "rank": "3"
+      },
+      {
+        "id": "11",
+        "team_name": "海地",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/C11.png",
+        "team_group": "C",
+        "win": "0",
+        "lose": "3",
+        "draw": "0",
+        "score": "0",
+        "goal": "2",
+        "miss_goal": "8",
+        "rank": "4"
+      }
+    ]
+  },
+  {
+    "team_group": "D",
+    "team_rank": [
+      {
+        "id": "13",
+        "team_name": "美国",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/D13.png",
+        "team_group": "D",
+        "win": "2",
+        "lose": "1",
+        "draw": "0",
+        "score": "6",
+        "goal": "8",
+        "miss_goal": "4",
+        "rank": "1"
+      },
+      {
+        "id": "16",
+        "team_name": "澳大利亚",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/D16.png",
+        "team_group": "D",
+        "win": "1",
+        "lose": "1",
+        "draw": "1",
+        "score": "4",
+        "goal": "2",
+        "miss_goal": "2",
+        "rank": "2"
+      },
+      {
+        "id": "15",
+        "team_name": "巴拉圭",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/D15.png",
+        "team_group": "D",
+        "win": "1",
+        "lose": "1",
+        "draw": "1",
+        "score": "4",
+        "goal": "2",
+        "miss_goal": "4",
+        "rank": "3"
+      },
+      {
+        "id": "14",
+        "team_name": "土耳其",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/D14.png",
+        "team_group": "D",
+        "win": "1",
+        "lose": "2",
+        "draw": "0",
+        "score": "3",
+        "goal": "3",
+        "miss_goal": "5",
+        "rank": "4"
+      }
+    ]
+  },
+  {
+    "team_group": "E",
+    "team_rank": [
+      {
+        "id": "17",
+        "team_name": "德国",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/E17.png",
+        "team_group": "E",
+        "win": "2",
+        "lose": "1",
+        "draw": "0",
+        "score": "6",
+        "goal": "10",
+        "miss_goal": "4",
+        "rank": "1"
+      },
+      {
+        "id": "19",
+        "team_name": "科特迪瓦",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/E19.png",
+        "team_group": "E",
+        "win": "2",
+        "lose": "1",
+        "draw": "0",
+        "score": "6",
+        "goal": "4",
+        "miss_goal": "2",
+        "rank": "2"
+      },
+      {
+        "id": "20",
+        "team_name": "厄瓜多尔",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/E20.png",
+        "team_group": "E",
+        "win": "1",
+        "lose": "1",
+        "draw": "1",
+        "score": "4",
+        "goal": "2",
+        "miss_goal": "2",
+        "rank": "3"
+      },
+      {
+        "id": "18",
+        "team_name": "库拉索",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/E18.png",
+        "team_group": "E",
+        "win": "0",
+        "lose": "2",
+        "draw": "1",
+        "score": "1",
+        "goal": "1",
+        "miss_goal": "9",
+        "rank": "4"
+      }
+    ]
+  },
+  {
+    "team_group": "F",
+    "team_rank": [
+      {
+        "id": "21",
+        "team_name": "荷兰",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/F21.png",
+        "team_group": "F",
+        "win": "2",
+        "lose": "0",
+        "draw": "1",
+        "score": "7",
+        "goal": "10",
+        "miss_goal": "4",
+        "rank": "1"
+      },
+      {
+        "id": "23",
+        "team_name": "日本",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/F23.png",
+        "team_group": "F",
+        "win": "1",
+        "lose": "0",
+        "draw": "2",
+        "score": "5",
+        "goal": "7",
+        "miss_goal": "3",
+        "rank": "2"
+      },
+      {
+        "id": "22",
+        "team_name": "瑞典",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/F22.png",
+        "team_group": "F",
+        "win": "1",
+        "lose": "1",
+        "draw": "1",
+        "score": "4",
+        "goal": "7",
+        "miss_goal": "7",
+        "rank": "3"
+      },
+      {
+        "id": "24",
+        "team_name": "突尼斯",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/F24.png",
+        "team_group": "F",
+        "win": "0",
+        "lose": "3",
+        "draw": "0",
+        "score": "0",
+        "goal": "2",
+        "miss_goal": "12",
+        "rank": "4"
+      }
+    ]
+  },
+  {
+    "team_group": "G",
+    "team_rank": [
+      {
+        "id": "25",
+        "team_name": "比利时",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/G25.png",
+        "team_group": "G",
+        "win": "1",
+        "lose": "0",
+        "draw": "2",
+        "score": "5",
+        "goal": "6",
+        "miss_goal": "2",
+        "rank": "1"
+      },
+      {
+        "id": "26",
+        "team_name": "埃及",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/G26.png",
+        "team_group": "G",
+        "win": "1",
+        "lose": "0",
+        "draw": "2",
+        "score": "5",
+        "goal": "5",
+        "miss_goal": "3",
+        "rank": "2"
+      },
+      {
+        "id": "27",
+        "team_name": "伊朗",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/G27.png",
+        "team_group": "G",
+        "win": "0",
+        "lose": "0",
+        "draw": "3",
+        "score": "3",
+        "goal": "3",
+        "miss_goal": "3",
+        "rank": "3"
+      },
+      {
+        "id": "28",
+        "team_name": "新西兰",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/G28.png",
+        "team_group": "G",
+        "win": "0",
+        "lose": "2",
+        "draw": "1",
+        "score": "1",
+        "goal": "4",
+        "miss_goal": "10",
+        "rank": "4"
+      }
+    ]
+  },
+  {
+    "team_group": "H",
+    "team_rank": [
+      {
+        "id": "29",
+        "team_name": "西班牙",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/H29.png",
+        "team_group": "H",
+        "win": "2",
+        "lose": "0",
+        "draw": "1",
+        "score": "7",
+        "goal": "5",
+        "miss_goal": "0",
+        "rank": "1"
+      },
+      {
+        "id": "30",
+        "team_name": "佛得角",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/H30.png",
+        "team_group": "H",
+        "win": "0",
+        "lose": "0",
+        "draw": "3",
+        "score": "3",
+        "goal": "2",
+        "miss_goal": "2",
+        "rank": "2"
+      },
+      {
+        "id": "32",
+        "team_name": "乌拉圭",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/H32.png",
+        "team_group": "H",
+        "win": "0",
+        "lose": "1",
+        "draw": "2",
+        "score": "2",
+        "goal": "3",
+        "miss_goal": "4",
+        "rank": "3"
+      },
+      {
+        "id": "31",
+        "team_name": "沙特阿拉伯",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/H31.png",
+        "team_group": "H",
+        "win": "0",
+        "lose": "1",
+        "draw": "2",
+        "score": "2",
+        "goal": "1",
+        "miss_goal": "5",
+        "rank": "4"
+      }
+    ]
+  },
+  {
+    "team_group": "I",
+    "team_rank": [
+      {
+        "id": "33",
+        "team_name": "法国",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/I33.png",
+        "team_group": "I",
+        "win": "3",
+        "lose": "0",
+        "draw": "0",
+        "score": "9",
+        "goal": "10",
+        "miss_goal": "2",
+        "rank": "1"
+      },
+      {
+        "id": "36",
+        "team_name": "挪威",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/I36.png",
+        "team_group": "I",
+        "win": "2",
+        "lose": "1",
+        "draw": "0",
+        "score": "6",
+        "goal": "8",
+        "miss_goal": "7",
+        "rank": "2"
+      },
+      {
+        "id": "35",
+        "team_name": "塞内加尔",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/I35.png",
+        "team_group": "I",
+        "win": "1",
+        "lose": "2",
+        "draw": "0",
+        "score": "3",
+        "goal": "8",
+        "miss_goal": "6",
+        "rank": "3"
+      },
+      {
+        "id": "34",
+        "team_name": "伊拉克",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/I34.png",
+        "team_group": "I",
+        "win": "0",
+        "lose": "3",
+        "draw": "0",
+        "score": "0",
+        "goal": "1",
+        "miss_goal": "12",
+        "rank": "4"
+      }
+    ]
+  },
+  {
+    "team_group": "J",
+    "team_rank": [
+      {
+        "id": "37",
+        "team_name": "阿根廷",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/J37.png",
+        "team_group": "J",
+        "win": "3",
+        "lose": "0",
+        "draw": "0",
+        "score": "9",
+        "goal": "8",
+        "miss_goal": "1",
+        "rank": "1"
+      },
+      {
+        "id": "39",
+        "team_name": "奥地利",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/J39.png",
+        "team_group": "J",
+        "win": "1",
+        "lose": "1",
+        "draw": "1",
+        "score": "4",
+        "goal": "6",
+        "miss_goal": "6",
+        "rank": "2"
+      },
+      {
+        "id": "38",
+        "team_name": "阿尔及利亚",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/J38.png",
+        "team_group": "J",
+        "win": "1",
+        "lose": "1",
+        "draw": "1",
+        "score": "4",
+        "goal": "5",
+        "miss_goal": "7",
+        "rank": "3"
+      },
+      {
+        "id": "40",
+        "team_name": "约旦",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/J40.png",
+        "team_group": "J",
+        "win": "0",
+        "lose": "3",
+        "draw": "0",
+        "score": "0",
+        "goal": "3",
+        "miss_goal": "8",
+        "rank": "4"
+      }
+    ]
+  },
+  {
+    "team_group": "K",
+    "team_rank": [
+      {
+        "id": "44",
+        "team_name": "哥伦比亚",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/K44.png",
+        "team_group": "K",
+        "win": "2",
+        "lose": "0",
+        "draw": "1",
+        "score": "7",
+        "goal": "4",
+        "miss_goal": "1",
+        "rank": "1"
+      },
+      {
+        "id": "41",
+        "team_name": "葡萄牙",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/K41.png",
+        "team_group": "K",
+        "win": "1",
+        "lose": "0",
+        "draw": "2",
+        "score": "5",
+        "goal": "6",
+        "miss_goal": "1",
+        "rank": "2"
+      },
+      {
+        "id": "42",
+        "team_name": "刚果民主共和国",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/K42.png",
+        "team_group": "K",
+        "win": "1",
+        "lose": "1",
+        "draw": "1",
+        "score": "4",
+        "goal": "4",
+        "miss_goal": "3",
+        "rank": "3"
+      },
+      {
+        "id": "43",
+        "team_name": "乌兹别克斯坦",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/K43.png",
+        "team_group": "K",
+        "win": "0",
+        "lose": "3",
+        "draw": "0",
+        "score": "0",
+        "goal": "2",
+        "miss_goal": "11",
+        "rank": "4"
+      }
+    ]
+  },
+  {
+    "team_group": "L",
+    "team_rank": [
+      {
+        "id": "45",
+        "team_name": "英格兰",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/L45.png",
+        "team_group": "L",
+        "win": "2",
+        "lose": "0",
+        "draw": "1",
+        "score": "7",
+        "goal": "6",
+        "miss_goal": "2",
+        "rank": "1"
+      },
+      {
+        "id": "46",
+        "team_name": "克罗地亚",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/L46.png",
+        "team_group": "L",
+        "win": "2",
+        "lose": "1",
+        "draw": "0",
+        "score": "6",
+        "goal": "5",
+        "miss_goal": "5",
+        "rank": "2"
+      },
+      {
+        "id": "47",
+        "team_name": "加纳",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/L47.png",
+        "team_group": "L",
+        "win": "1",
+        "lose": "1",
+        "draw": "1",
+        "score": "4",
+        "goal": "2",
+        "miss_goal": "2",
+        "rank": "3"
+      },
+      {
+        "id": "48",
+        "team_name": "巴拿马",
+        "team_logo": "https://juhe.oss-cn-hangzhou.aliyuncs.com/api_image/616/worldcup2026/L48.png",
+        "team_group": "L",
+        "win": "0",
+        "lose": "3",
+        "draw": "0",
+        "score": "0",
+        "goal": "0",
+        "miss_goal": "4",
+        "rank": "4"
+      }
+    ]
+  }
+]

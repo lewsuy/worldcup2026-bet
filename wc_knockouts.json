@@ -1,226 +1,226 @@
 [
   {
-    "no": 73,
-    "round": "R32",
-    "time": "6月29日 3:00",
-    "a": "South Africa",
-    "b": "Canada"
+    "no": 95,
+    "round": "R16",
+    "time": "7月7日 12:00",
+    "a": "?",
+    "b": "?"
   },
   {
-    "no": 74,
-    "round": "R32",
-    "time": "6月30日 1:00",
-    "a": "Brazil",
-    "b": "Japan"
+    "no": 101,
+    "round": "SF",
+    "time": "7月14日 14:00",
+    "a": "?",
+    "b": "?"
   },
   {
-    "no": 75,
-    "round": "R32",
-    "time": "6月30日 4:30",
-    "a": "Germany",
-    "b": "Paraguay"
-  },
-  {
-    "no": 76,
-    "round": "R32",
-    "time": "6月30日 9:00",
-    "a": "Netherlands",
-    "b": "Morocco"
-  },
-  {
-    "no": 77,
-    "round": "R32",
-    "time": "7月1日 1:00",
-    "a": "Ivory Coast",
-    "b": "Norway"
-  },
-  {
-    "no": 78,
-    "round": "R32",
-    "time": "7月1日 5:00",
-    "a": "France",
-    "b": "Sweden"
-  },
-  {
-    "no": 79,
-    "round": "R32",
-    "time": "7月1日 9:00",
-    "a": "Mexico",
-    "b": "Ecuador"
-  },
-  {
-    "no": 80,
-    "round": "R32",
-    "time": "7月2日 0:00",
-    "a": "England",
-    "b": "Democratic Republic of the Congo"
-  },
-  {
-    "no": 81,
-    "round": "R32",
-    "time": "7月2日 4:00",
-    "a": "Belgium",
-    "b": "Senegal"
-  },
-  {
-    "no": 82,
-    "round": "R32",
-    "time": "7月2日 8:00",
-    "a": "United States",
-    "b": "Bosnia and Herzegovina"
-  },
-  {
-    "no": 83,
-    "round": "R32",
-    "time": "7月3日 3:00",
-    "a": "Spain",
-    "b": "Austria"
-  },
-  {
-    "no": 84,
-    "round": "R32",
-    "time": "7月3日 7:00",
-    "a": "Portugal",
-    "b": "Croatia"
-  },
-  {
-    "no": 85,
-    "round": "R32",
-    "time": "7月3日 11:00",
-    "a": "Switzerland",
-    "b": "Algeria"
+    "no": 102,
+    "round": "SF",
+    "time": "7月15日 15:00",
+    "a": "?",
+    "b": "?"
   },
   {
     "no": 86,
     "round": "R32",
-    "time": "7月4日 2:00",
-    "a": "Australia",
-    "b": "Egypt"
-  },
-  {
-    "no": 87,
-    "round": "R32",
-    "time": "7月4日 6:00",
+    "time": "7月3日 18:00",
     "a": "Argentina",
     "b": "Cape Verde"
   },
   {
     "no": 88,
     "round": "R32",
-    "time": "7月4日 9:30",
-    "a": "Colombia",
-    "b": "Ghana"
-  },
-  {
-    "no": 89,
-    "round": "R16",
-    "time": "7月5日 1:00",
-    "a": "Canada",
-    "b": "Morocco"
-  },
-  {
-    "no": 90,
-    "round": "R16",
-    "time": "7月5日 5:00",
-    "a": "Paraguay",
-    "b": "第5场1/16决赛胜者"
-  },
-  {
-    "no": 91,
-    "round": "R16",
-    "time": "7月6日 4:00",
-    "a": "Brazil",
-    "b": "第6场1/16决赛胜者"
-  },
-  {
-    "no": 92,
-    "round": "R16",
-    "time": "7月6日 8:00",
-    "a": "第7场1/16决赛胜者",
-    "b": "第8场1/16决赛胜者"
-  },
-  {
-    "no": 93,
-    "round": "R16",
-    "time": "7月7日 3:00",
-    "a": "第11场1/16决赛胜者",
-    "b": "第12场1/16决赛胜者"
-  },
-  {
-    "no": 94,
-    "round": "R16",
-    "time": "7月7日 8:00",
-    "a": "第9场1/16决赛胜者",
-    "b": "第10场1/16决赛胜者"
-  },
-  {
-    "no": 95,
-    "round": "R16",
-    "time": "7月8日 0:00",
-    "a": "第14场1/16决赛胜者",
-    "b": "第16场1/16决赛胜者"
-  },
-  {
-    "no": 96,
-    "round": "R16",
-    "time": "7月8日 4:00",
-    "a": "第13场1/16决赛胜者",
-    "b": "第15场1/16决赛胜者"
-  },
-  {
-    "no": 97,
-    "round": "QF",
-    "time": "7月10日 4:00",
-    "a": "第1场1/8决赛胜者",
-    "b": "第2场1/8决赛胜者"
-  },
-  {
-    "no": 98,
-    "round": "QF",
-    "time": "7月11日 3:00",
-    "a": "第5场1/8决赛胜者",
-    "b": "第6场1/8决赛胜者"
-  },
-  {
-    "no": 99,
-    "round": "QF",
-    "time": "7月12日 5:00",
-    "a": "第3场1/8决赛胜者",
-    "b": "第4场1/8决赛胜者"
+    "time": "7月3日 13:00",
+    "a": "Australia",
+    "b": "Egypt"
   },
   {
     "no": 100,
     "round": "QF",
-    "time": "7月12日 9:00",
-    "a": "第7场1/8决赛胜者",
-    "b": "第8场1/8决赛胜者"
+    "time": "7月11日 20:00",
+    "a": "?",
+    "b": "?"
   },
   {
-    "no": 101,
-    "round": "SF",
-    "time": "7月15日 3:00",
-    "a": "第1场1/4决赛胜者",
-    "b": "第2场1/4决赛胜者"
+    "no": 87,
+    "round": "R32",
+    "time": "7月3日 20:30",
+    "a": "Colombia",
+    "b": "Ghana"
   },
   {
-    "no": 102,
-    "round": "SF",
-    "time": "7月16日 3:00",
-    "a": "第3场1/4决赛胜者",
-    "b": "第4场1/4决赛胜者"
+    "no": 98,
+    "round": "QF",
+    "time": "7月10日 12:00",
+    "a": "?",
+    "b": "?"
   },
   {
-    "no": 103,
-    "round": "3rd",
-    "time": "7月19日 5:00",
-    "a": "第1场半决赛败者",
-    "b": "第2场半决赛败者"
+    "no": 76,
+    "round": "R32",
+    "time": "6月29日 12:00",
+    "a": "Brazil",
+    "b": "Japan"
+  },
+  {
+    "no": 83,
+    "round": "R32",
+    "time": "7月2日 19:00",
+    "a": "Portugal",
+    "b": "Croatia"
+  },
+  {
+    "no": 85,
+    "round": "R32",
+    "time": "7月2日 20:00",
+    "a": "Switzerland",
+    "b": "Algeria"
+  },
+  {
+    "no": 93,
+    "round": "R16",
+    "time": "7月6日 14:00",
+    "a": "?",
+    "b": "?"
+  },
+  {
+    "no": 96,
+    "round": "R16",
+    "time": "7月7日 13:00",
+    "a": "?",
+    "b": "?"
+  },
+  {
+    "no": 73,
+    "round": "R32",
+    "time": "6月28日 12:00",
+    "a": "South Africa",
+    "b": "Canada"
+  },
+  {
+    "no": 77,
+    "round": "R32",
+    "time": "6月30日 17:00",
+    "a": "France",
+    "b": "Sweden"
+  },
+  {
+    "no": 84,
+    "round": "R32",
+    "time": "7月2日 12:00",
+    "a": "Spain",
+    "b": "Austria"
+  },
+  {
+    "no": 90,
+    "round": "R16",
+    "time": "7月4日 12:00",
+    "a": "Canada",
+    "b": "Morocco"
+  },
+  {
+    "no": 92,
+    "round": "R16",
+    "time": "7月5日 18:00",
+    "a": "?",
+    "b": "?"
+  },
+  {
+    "no": 94,
+    "round": "R16",
+    "time": "7月6日 17:00",
+    "a": "?",
+    "b": "?"
+  },
+  {
+    "no": 91,
+    "round": "R16",
+    "time": "7月5日 16:00",
+    "a": "Brazil",
+    "b": "?"
+  },
+  {
+    "no": 97,
+    "round": "QF",
+    "time": "7月9日 16:00",
+    "a": "?",
+    "b": "?"
   },
   {
     "no": 104,
     "round": "F",
-    "time": "7月20日 3:00",
-    "a": "第1场半决赛胜者",
-    "b": "第2场半决赛胜者"
+    "time": "7月19日 15:00",
+    "a": "?",
+    "b": "?"
+  },
+  {
+    "no": 74,
+    "round": "R32",
+    "time": "6月29日 16:30",
+    "a": "Germany",
+    "b": "Paraguay"
+  },
+  {
+    "no": 81,
+    "round": "R32",
+    "time": "7月1日 17:00",
+    "a": "United States",
+    "b": "Bosnia and Herzegovina"
+  },
+  {
+    "no": 103,
+    "round": "3rd",
+    "time": "7月18日 17:00",
+    "a": "?",
+    "b": "?"
+  },
+  {
+    "no": 75,
+    "round": "R32",
+    "time": "6月29日 19:00",
+    "a": "Netherlands",
+    "b": "Morocco"
+  },
+  {
+    "no": 78,
+    "round": "R32",
+    "time": "6月30日 12:00",
+    "a": "Ivory Coast",
+    "b": "Norway"
+  },
+  {
+    "no": 79,
+    "round": "R32",
+    "time": "6月30日 19:00",
+    "a": "Mexico",
+    "b": "Ecuador"
+  },
+  {
+    "no": 80,
+    "round": "R32",
+    "time": "7月1日 12:00",
+    "a": "England",
+    "b": "Democratic Republic of the Congo"
+  },
+  {
+    "no": 82,
+    "round": "R32",
+    "time": "7月1日 13:00",
+    "a": "Belgium",
+    "b": "Senegal"
+  },
+  {
+    "no": 89,
+    "round": "R16",
+    "time": "7月4日 17:00",
+    "a": "Paraguay",
+    "b": "?"
+  },
+  {
+    "no": 99,
+    "round": "QF",
+    "time": "7月11日 17:00",
+    "a": "?",
+    "b": "?"
   }
 ]
