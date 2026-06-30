@@ -1100,17 +1100,6 @@ function renderKnockout() {
     container.innerHTML = html;
 }
 
-// ==== 淘汰赛对阵表（思维导图样式 SVG）====
-// 32 场对阵来自 wc_knockouts.json：R32(16) → R16(8) → QF(4) → SF(2) → 3rd(1) + F(1)
-// 布局：5 列 R32/R16/QF/SF/F，季军赛 3rd 单独放在 F 列下方
-// 颜色：按轮次主题色（蓝→紫→粉→橙→金），淡色背景 + 半透明边框
-// 已结束：保持红色 #ff4757 边框 + 显示比分（最高优先级覆盖主题色）
-// 占位符：灰色虚线 #8a96a8 + dasharray
-// 已确定国家队：实线主题色边框
-
-  container.innerHTML = html;
-}
-
 // ==== 实时数据拉取 ====
 const LIVE_API = 'https://worldcup26.ir/get/games';
 let _liveTimer = null;
