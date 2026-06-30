@@ -1440,9 +1440,18 @@ function renderGames() {
     } else {
       statusBadge = `<span class="status-upcoming">${toBeijingStr(g.local_date)}</span>`;
     }
-    // 比分或 VS
+    // 比分或 VS（含加时/点球）
     const scoreHtml = (isFinished || isLive)
-      ? `<div class="score ${isLive ? 'live' : ''}">${g.home_score} - ${g.away_score}</div>`
+      ? (() => {
+          let main = `${g.home_score} - ${g.away_score}`;
+          let extra = '';
+          if (g.home_penalty) {
+            extra = `<div style="font-size:12px;color:#ffd700;margin-top:2px">点球 ${g.home_penalty} - ${g.away_penalty}</div>`;
+          } else if (g.home_bigscore && g.home_bigscore !== g.home_score) {
+            extra = `<div style="font-size:12px;color:#ffd700;margin-top:2px">总比分 ${g.home_bigscore} - ${g.away_bigscore}</div>`;
+          }
+          return `<div class="score ${isLive ? 'live' : ''}">${main}${extra}</div>`;
+        })()
       : '<div class="vs">VS</div>';
     return `<div class="game-card ${isFinished ? 'finished' : ''} ${isLive ? 'live' : ''}">
       <div class="meta">
