@@ -768,148 +768,6 @@ function renderGroups() {
   const TREE_fullW = TREE_padX + 5 * TREE_colW + 4 * TREE_colGap + TREE_colGap + TREE_colW + TREE_padX;
   const TREE_fullH = TREE_padY + 10 * TREE_rowH + TREE_padY;
 
-  // 渲染卡片（白框风格）
-  function treeCard(m, roundKey) {
-    const finished = isFinished(m);
-    const phA = isPlaceholder(m.a);
-    const phB = isPlaceholder(m.b);
-    let scoreText = '';
-    if (finished && koGames[m.no]) {
-      const g = koGames[m.no];
-      const ha = g.home_score ?? ''; const aa = g.away_score ?? '';
-      scoreText = `${ha}:${aa}`;
-      if (g.home_penalty) scoreText += ` (${g.home_penalty}:${g.away_penalty})`;
-    } else if (!phA && !phB) {
-      scoreText = 'VS';
-    }
-    return `<div style="width:${TREE_colW}px;height:${TREE_nodeH}px;border:1px solid rgba(255,255,255,0.6);border-radius:2px;display:flex;flex-direction:column;justify-content:center;padding:0 8px;background:rgba(0,0,0,0.3);">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
-        <span style="color:${phA ? 'rgba(255,255,255,0.3)' : '#fff'};font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${esc(m.a || '?')}</span>
-        ${scoreText ? `<span style="color:#fff;font-size:12px;font-weight:700;flex-shrink:0;">${scoreText}</span>` : ''}
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:2px;">
-        <span style="color:${phB ? 'rgba(255,255,255,0.3)' : '#fff'};font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${esc(m.b || '?')}</span>
-      </div>
-    </div>`;
-  }
-
-  // SVG 连线（白色 L 形）
-  function svgBracketLines() {
-    let svg = `<svg style="position:absolute;left:0;top:0;width:${TREE_fullW}px;height:${TREE_fullH}px;pointer-events:none;">`;
-    const lineColor = 'rgba(255,255,255,0.5)';
-    const sw = 1.5;
-
-    // R32 → R16
-    for (let i = 0; i < 8; i++) {
-      const x1 = TREE_x('R32') + TREE_colW;
-      const x2 = TREE_x('R16');
-      const yA = TREE_y('R32', 2*i) + TREE_nodeH/2;
-      const yB = TREE_y('R32', 2*i+1) + TREE_nodeH/2;
-      const yC = TREE_y('R16', i) + TREE_nodeH/2;
-      const mx = (x1 + x2) / 2;
-      svg += `<path d="M${x1},${yA} H${mx} V${yC} H${x2}" stroke="${lineColor}" stroke-width="${sw}" fill="none"/>`;
-      svg += `<path d="M${x1},${yB} H${mx} V${yC}" stroke="${lineColor}" stroke-width="${sw}" fill="none"/>`;
-    }
-    // R16 → QF
-    for (let i = 0; i < 4; i++) {
-      const x1 = TREE_x('R16') + TREE_colW;
-      const x2 = TREE_x('QF');
-      const yA = TREE_y('R16', 2*i) + TREE_nodeH/2;
-      const yB = TREE_y('R16', 2*i+1) + TREE_nodeH/2;
-      const yC = TREE_y('QF', i) + TREE_nodeH/2;
-      const mx = (x1 + x2) / 2;
-      svg += `<path d="M${x1},${yA} H${mx} V${yC} H${x2}" stroke="${lineColor}" stroke-width="${sw}" fill="none"/>`;
-      svg += `<path d="M${x1},${yB} H${mx} V${yC}" stroke="${lineColor}" stroke-width="${sw}" fill="none"/>`;
-    }
-    // QF → SF
-    for (let i = 0; i < 2; i++) {
-      const x1 = TREE_x('QF') + TREE_colW;
-      const x2 = TREE_x('SF');
-      const yA = TREE_y('QF', 2*i) + TREE_nodeH/2;
-      const yB = TREE_y('QF', 2*i+1) + TREE_nodeH/2;
-      const yC = TREE_y('SF', i) + TREE_nodeH/2;
-      const mx = (x1 + x2) / 2;
-      svg += `<path d="M${x1},${yA} H${mx} V${yC} H${x2}" stroke="${lineColor}" stroke-width="${sw}" fill="none"/>`;
-      svg += `<path d="M${x1},${yB} H${mx} V${yC}" stroke="${lineColor}" stroke-width="${sw}" fill="none"/>`;
-    }
-    // SF → F
-    {
-      const x1 = TREE_x('SF') + TREE_colW;
-      const x2 = TREE_x('F');
-      const yA = TREE_y('SF', 0) + TREE_nodeH/2;
-      const yB = TREE_y('SF', 1) + TREE_nodeH/2;
-      const yC = TREE_y('F', 0) + TREE_nodeH/2;
-      const mx = (x1 + x2) / 2;
-      svg += `<path d="M${x1},${yA} H${mx} V${yC} H${x2}" stroke="${lineColor}" stroke-width="${sw}" fill="none"/>`;
-      svg += `<path d="M${x1},${yB} H${mx} V${yC}" stroke="${lineColor}" stroke-width="${sw}" fill="none"/>`;
-    }
-    // SF → 3rd（虚线）
-    {
-      const x1 = TREE_x('SF') + TREE_colW;
-      const x2 = TREE_x3rd();
-      const yA = TREE_y('SF', 0) + TREE_nodeH/2;
-      const yB = TREE_y('SF', 1) + TREE_nodeH/2;
-      const yC = TREE_y3rd() + TREE_nodeH/2;
-      const mx = (x1 + x2) / 2;
-      svg += `<path d="M${x1},${yA} H${mx} V${yC} H${x2}" stroke="rgba(255,255,255,0.25)" stroke-width="${sw}" fill="none" stroke-dasharray="4 3"/>`;
-      svg += `<path d="M${x1},${yB} H${mx} V${yC}" stroke="rgba(255,255,255,0.25)" stroke-width="${sw}" fill="none" stroke-dasharray="4 3"/>`;
-    }
-    svg += `</svg>`;
-    return svg;
-  }
-
-  // 轮次标题
-  const roundHeaders = [
-    {key:'R32', name:'1/16决赛'}, {key:'R16', name:'1/8决赛'},
-    {key:'QF', name:'1/4决赛'}, {key:'SF', name:'半决赛'}, {key:'F', name:'决赛'}
-  ];
-
-  html += `<div style="overflow-x:auto;padding:10px 0;">`;
-  html += `<div style="position:relative;width:${TREE_fullW}px;height:${TREE_fullH}px;">`;
-
-  // SVG 连线
-  html += svgBracketLines();
-
-  // 轮次标题
-  for (const rh of roundHeaders) {
-    const x = TREE_x(rh.key);
-    html += `<div style="position:absolute;left:${x}px;top:0;width:${TREE_colW}px;text-align:center;color:rgba(255,255,255,0.7);font-size:13px;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:6px;">${rh.name}</div>`;
-  }
-  // 季军赛标题
-  html += `<div style="position:absolute;left:${TREE_x3rd()}px;top:0;width:${TREE_colW}px;text-align:center;color:rgba(255,255,255,0.5);font-size:13px;font-weight:600;border-bottom:1px dashed rgba(255,255,255,0.2);padding-bottom:6px;">季军赛</div>`;
-
-  // 卡片
-  function placeCards(round, matches) {
-    const x = TREE_x(round);
-    for (let i = 0; i < matches.length; i++) {
-      const y = TREE_y(round, i);
-      html += `<div style="position:absolute;left:${x}px;top:${y}px;">${treeCard(matches[i], round)}</div>`;
-    }
-  }
-  placeCards('R32', byRound['R32'] || []);
-  placeCards('R16', byRound['R16'] || []);
-  placeCards('QF', byRound['QF'] || []);
-  placeCards('SF', byRound['SF'] || []);
-  if (byRound['F'] && byRound['F'][0]) {
-    html += `<div style="position:absolute;left:${TREE_x('F')}px;top:${TREE_y('F', 0)}px;">${treeCard(byRound['F'][0], 'F')}</div>`;
-  }
-  if (byRound['3rd'] && byRound['3rd'][0]) {
-    html += `<div style="position:absolute;left:${TREE_x3rd()}px;top:${TREE_y3rd()}px;">${treeCard(byRound['3rd'][0], '3rd')}</div>`;
-  }
-
-  html += `</div></div>`;
-
-  
-    container.innerHTML = html;
-}
-
-// ==== 淘汰赛对阵表（思维导图样式 SVG）====
-// 32 场对阵来自 wc_knockouts.json：R32(16) → R16(8) → QF(4) → SF(2) → 3rd(1) + F(1)
-// 布局：5 列 R32/R16/QF/SF/F，季军赛 3rd 单独放在 F 列下方
-// 颜色：按轮次主题色（蓝→紫→粉→橙→金），淡色背景 + 半透明边框
-// 已结束：保持红色 #ff4757 边框 + 显示比分（最高优先级覆盖主题色）
-// 占位符：灰色虚线 #8a96a8 + dasharray
-// 已确定国家队：实线主题色边框
 function renderKnockout() {
   const container = document.getElementById('knockoutContainer');
   if (!container) return;
@@ -1106,6 +964,149 @@ function renderKnockout() {
   </div>`;
 
   
+
+    // 渲染卡片（白框风格）
+  function treeCard(m, roundKey) {
+    const finished = isFinished(m);
+    const phA = isPlaceholder(m.a);
+    const phB = isPlaceholder(m.b);
+    let scoreText = '';
+    if (finished && koGames[m.no]) {
+      const g = koGames[m.no];
+      const ha = g.home_score ?? ''; const aa = g.away_score ?? '';
+      scoreText = `${ha}:${aa}`;
+      if (g.home_penalty) scoreText += ` (${g.home_penalty}:${g.away_penalty})`;
+    } else if (!phA && !phB) {
+      scoreText = 'VS';
+    }
+    return `<div style="width:${TREE_colW}px;height:${TREE_nodeH}px;border:1px solid rgba(255,255,255,0.6);border-radius:2px;display:flex;flex-direction:column;justify-content:center;padding:0 8px;background:rgba(0,0,0,0.3);">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+        <span style="color:${phA ? 'rgba(255,255,255,0.3)' : '#fff'};font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${esc(m.a || '?')}</span>
+        ${scoreText ? `<span style="color:#fff;font-size:12px;font-weight:700;flex-shrink:0;">${scoreText}</span>` : ''}
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:2px;">
+        <span style="color:${phB ? 'rgba(255,255,255,0.3)' : '#fff'};font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${esc(m.b || '?')}</span>
+      </div>
+    </div>`;
+  }
+
+  // SVG 连线（白色 L 形）
+  function svgBracketLines() {
+    let svg = `<svg style="position:absolute;left:0;top:0;width:${TREE_fullW}px;height:${TREE_fullH}px;pointer-events:none;">`;
+    const lineColor = 'rgba(255,255,255,0.5)';
+    const sw = 1.5;
+
+    // R32 → R16
+    for (let i = 0; i < 8; i++) {
+      const x1 = TREE_x('R32') + TREE_colW;
+      const x2 = TREE_x('R16');
+      const yA = TREE_y('R32', 2*i) + TREE_nodeH/2;
+      const yB = TREE_y('R32', 2*i+1) + TREE_nodeH/2;
+      const yC = TREE_y('R16', i) + TREE_nodeH/2;
+      const mx = (x1 + x2) / 2;
+      svg += `<path d="M${x1},${yA} H${mx} V${yC} H${x2}" stroke="${lineColor}" stroke-width="${sw}" fill="none"/>`;
+      svg += `<path d="M${x1},${yB} H${mx} V${yC}" stroke="${lineColor}" stroke-width="${sw}" fill="none"/>`;
+    }
+    // R16 → QF
+    for (let i = 0; i < 4; i++) {
+      const x1 = TREE_x('R16') + TREE_colW;
+      const x2 = TREE_x('QF');
+      const yA = TREE_y('R16', 2*i) + TREE_nodeH/2;
+      const yB = TREE_y('R16', 2*i+1) + TREE_nodeH/2;
+      const yC = TREE_y('QF', i) + TREE_nodeH/2;
+      const mx = (x1 + x2) / 2;
+      svg += `<path d="M${x1},${yA} H${mx} V${yC} H${x2}" stroke="${lineColor}" stroke-width="${sw}" fill="none"/>`;
+      svg += `<path d="M${x1},${yB} H${mx} V${yC}" stroke="${lineColor}" stroke-width="${sw}" fill="none"/>`;
+    }
+    // QF → SF
+    for (let i = 0; i < 2; i++) {
+      const x1 = TREE_x('QF') + TREE_colW;
+      const x2 = TREE_x('SF');
+      const yA = TREE_y('QF', 2*i) + TREE_nodeH/2;
+      const yB = TREE_y('QF', 2*i+1) + TREE_nodeH/2;
+      const yC = TREE_y('SF', i) + TREE_nodeH/2;
+      const mx = (x1 + x2) / 2;
+      svg += `<path d="M${x1},${yA} H${mx} V${yC} H${x2}" stroke="${lineColor}" stroke-width="${sw}" fill="none"/>`;
+      svg += `<path d="M${x1},${yB} H${mx} V${yC}" stroke="${lineColor}" stroke-width="${sw}" fill="none"/>`;
+    }
+    // SF → F
+    {
+      const x1 = TREE_x('SF') + TREE_colW;
+      const x2 = TREE_x('F');
+      const yA = TREE_y('SF', 0) + TREE_nodeH/2;
+      const yB = TREE_y('SF', 1) + TREE_nodeH/2;
+      const yC = TREE_y('F', 0) + TREE_nodeH/2;
+      const mx = (x1 + x2) / 2;
+      svg += `<path d="M${x1},${yA} H${mx} V${yC} H${x2}" stroke="${lineColor}" stroke-width="${sw}" fill="none"/>`;
+      svg += `<path d="M${x1},${yB} H${mx} V${yC}" stroke="${lineColor}" stroke-width="${sw}" fill="none"/>`;
+    }
+    // SF → 3rd（虚线）
+    {
+      const x1 = TREE_x('SF') + TREE_colW;
+      const x2 = TREE_x3rd();
+      const yA = TREE_y('SF', 0) + TREE_nodeH/2;
+      const yB = TREE_y('SF', 1) + TREE_nodeH/2;
+      const yC = TREE_y3rd() + TREE_nodeH/2;
+      const mx = (x1 + x2) / 2;
+      svg += `<path d="M${x1},${yA} H${mx} V${yC} H${x2}" stroke="rgba(255,255,255,0.25)" stroke-width="${sw}" fill="none" stroke-dasharray="4 3"/>`;
+      svg += `<path d="M${x1},${yB} H${mx} V${yC}" stroke="rgba(255,255,255,0.25)" stroke-width="${sw}" fill="none" stroke-dasharray="4 3"/>`;
+    }
+    svg += `</svg>`;
+    return svg;
+  }
+
+  // 轮次标题
+  const roundHeaders = [
+    {key:'R32', name:'1/16决赛'}, {key:'R16', name:'1/8决赛'},
+    {key:'QF', name:'1/4决赛'}, {key:'SF', name:'半决赛'}, {key:'F', name:'决赛'}
+  ];
+
+  html += `<div style="overflow-x:auto;padding:10px 0;">`;
+  html += `<div style="position:relative;width:${TREE_fullW}px;height:${TREE_fullH}px;">`;
+
+  // SVG 连线
+  html += svgBracketLines();
+
+  // 轮次标题
+  for (const rh of roundHeaders) {
+    const x = TREE_x(rh.key);
+    html += `<div style="position:absolute;left:${x}px;top:0;width:${TREE_colW}px;text-align:center;color:rgba(255,255,255,0.7);font-size:13px;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:6px;">${rh.name}</div>`;
+  }
+  // 季军赛标题
+  html += `<div style="position:absolute;left:${TREE_x3rd()}px;top:0;width:${TREE_colW}px;text-align:center;color:rgba(255,255,255,0.5);font-size:13px;font-weight:600;border-bottom:1px dashed rgba(255,255,255,0.2);padding-bottom:6px;">季军赛</div>`;
+
+  // 卡片
+  function placeCards(round, matches) {
+    const x = TREE_x(round);
+    for (let i = 0; i < matches.length; i++) {
+      const y = TREE_y(round, i);
+      html += `<div style="position:absolute;left:${x}px;top:${y}px;">${treeCard(matches[i], round)}</div>`;
+    }
+  }
+  placeCards('R32', byRound['R32'] || []);
+  placeCards('R16', byRound['R16'] || []);
+  placeCards('QF', byRound['QF'] || []);
+  placeCards('SF', byRound['SF'] || []);
+  if (byRound['F'] && byRound['F'][0]) {
+    html += `<div style="position:absolute;left:${TREE_x('F')}px;top:${TREE_y('F', 0)}px;">${treeCard(byRound['F'][0], 'F')}</div>`;
+  }
+  if (byRound['3rd'] && byRound['3rd'][0]) {
+    html += `<div style="position:absolute;left:${TREE_x3rd()}px;top:${TREE_y3rd()}px;">${treeCard(byRound['3rd'][0], '3rd')}</div>`;
+  }
+
+  html += `</div></div>`;
+
+  
+    container.innerHTML = html;
+}
+
+// ==== 淘汰赛对阵表（思维导图样式 SVG）====
+// 32 场对阵来自 wc_knockouts.json：R32(16) → R16(8) → QF(4) → SF(2) → 3rd(1) + F(1)
+// 布局：5 列 R32/R16/QF/SF/F，季军赛 3rd 单独放在 F 列下方
+// 颜色：按轮次主题色（蓝→紫→粉→橙→金），淡色背景 + 半透明边框
+// 已结束：保持红色 #ff4757 边框 + 显示比分（最高优先级覆盖主题色）
+// 占位符：灰色虚线 #8a96a8 + dasharray
+// 已确定国家队：实线主题色边框
 
   container.innerHTML = html;
 }
