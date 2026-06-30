@@ -847,33 +847,17 @@ function renderKnockout() {
     }
   }
 
-// 渲染单张卡片（HTML div，非 SVG）
+// 渲染单张卡片（白框风格）
   function cardHtml(roundKey, m) {
-    const c = colorMap[roundKey];
     const finished = isFinished(m);
     const placeholderA = isPlaceholder(m.a);
     const placeholderB = isPlaceholder(m.b);
 
-    let borderColor, bgColor, borderStyle = 'solid', borderWidth = 1;
-    if (finished) {
-      borderColor = '#ff4757';
-      bgColor = 'rgba(255,71,87,0.12)';
-      borderWidth = 2;
-    } else if (placeholderA && placeholderB) {
-      borderColor = '#8a96a8';
-      bgColor = '#1a2332';
-      borderStyle = 'dashed';
-    } else {
-      borderColor = tint(c, 0.55);
-      bgColor = tint(c, 0.10);
-    }
+    let borderColor = finished ? 'rgba(255,255,255,0.9)' : placeholderA && placeholderB ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.6)';
+    let bgColor = finished ? 'rgba(255,255,255,0.06)' : 'transparent';
 
-    const colorA = placeholderA ? '#8a96a8' : '#e8eef5';
-    const colorB = placeholderB ? '#8a96a8' : '#e8eef5';
-    const fsA = placeholderA ? 'italic' : 'normal';
-    const fsB = placeholderB ? 'italic' : 'normal';
-    const wA = placeholderA ? 400 : 600;
-    const wB = placeholderB ? 400 : 600;
+    const colorA = placeholderA ? 'rgba(255,255,255,0.25)' : '#fff';
+    const colorB = placeholderB ? 'rgba(255,255,255,0.25)' : '#fff';
 
     let scoreLine = '';
     if (finished && koGames[m.no]) {
@@ -882,34 +866,29 @@ function renderKnockout() {
       const aa = g.away_score != null ? g.away_score : '';
       let penaltyInfo = '';
       if (g.home_penalty) {
-        penaltyInfo = `<div style="font-size:10px;color:#8a96a8;margin-top:2px;">点球 ${g.home_penalty} - ${g.away_penalty}</div>`;
+        penaltyInfo = `<span style="font-size:10px;color:rgba(255,255,255,0.5);margin-left:4px;">(${g.home_penalty}:${g.away_penalty})</span>`;
       }
-      scoreLine = `<div style="margin-top:4px;padding-top:4px;border-top:1px dashed ${borderColor};text-align:center;">
-        <span style="color:#ffd700;font-size:14px;font-weight:700;">${ha} - ${aa}</span>
-        ${penaltyInfo}
-      </div>`;
+      scoreLine = `<span style="color:#fff;font-size:14px;font-weight:700;margin-left:auto;">${ha}:${aa}${penaltyInfo}</span>`;
+    } else if (!placeholderA && !placeholderB) {
+      scoreLine = '<span style="color:rgba(255,255,255,0.4);font-size:12px;margin-left:auto;">VS</span>';
     }
 
     return `<div class="ko-card" data-no="${m.no}" style="
       background:${bgColor};
-      border:${borderWidth}px ${borderStyle} ${borderColor};
-      border-radius:8px;
-      padding:8px 10px;
-      box-shadow:0 2px 6px rgba(0,0,0,0.35);
+      border:1px solid ${borderColor};
+      border-radius:2px;
+      padding:6px 10px;
       transition:filter .15s;
       cursor:pointer;
       overflow:hidden;
-    " onmouseover="this.style.filter='brightness(1.25)'" onmouseout="this.style.filter=''">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:18px;padding:0 5px;background:${tint(c,0.18)};color:${c};border:1px solid ${tint(c,0.55)};border-radius:8px;font-size:10px;font-weight:700;">#${m.no}</span>
-        <span style="color:#8a96a8;font-size:11px;">${esc(m.time || '')}</span>
+    " onmouseover="this.style.filter='brightness(1.3)'" onmouseout="this.style.filter=''">
+      <div style="display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.5;white-space:nowrap;overflow:hidden;">
+        <span style="color:${colorA};font-weight:500;overflow:hidden;text-overflow:ellipsis;">${esc(m.a || '?')}</span>
+        ${scoreLine}
       </div>
-      <div style="display:flex;align-items:center;justify-content:flex-start;gap:4px;font-size:13px;line-height:1.3;white-space:nowrap;overflow:hidden;font-weight:500;">
-        <span style="color:${colorA};font-weight:${wA};font-style:${fsA};flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;max-width:45%;">${esc(m.a || '?')}</span>
-        <span style="color:#8a96a8;font-size:11px;flex:0 0 auto;opacity:0.6;">vs</span>
-        <span style="color:${colorB};font-weight:${wB};font-style:${fsB};flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;max-width:45%;">${esc(m.b || '?')}</span>
+      <div style="display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.5;white-space:nowrap;overflow:hidden;">
+        <span style="color:${colorB};font-weight:500;overflow:hidden;text-overflow:ellipsis;">${esc(m.b || '?')}</span>
       </div>
-      ${scoreLine}
     </div>`;
   }
 
@@ -979,16 +958,16 @@ function renderKnockout() {
   for (const c of TREE_cols) {
     const x = TREE_xFor(c.key);
     const colC = colorMap[c.key];
-    html += `<div style="position:absolute;left:${x}px;top:0;width:${TREE_colW}px;height:${TREE_headerH - 6}px;display:flex;align-items:center;justify-content:center;gap:8px;border-bottom:2px solid ${colC};">
-      <span style="color:${colC};font-size:15px;font-weight:700;">${c.name}</span>
+    html += `<div style="position:absolute;left:${x}px;top:0;width:${TREE_colW}px;height:${TREE_headerH - 6}px;display:flex;align-items:center;justify-content:center;gap:8px;border-bottom:1px solid rgba(255,255,255,0.2);">
+      <span style="color:rgba(255,255,255,0.7);font-size:15px;font-weight:700;">${c.name}</span>
       <span style="color:#8a96a8;font-size:11px;">${c.count}场</span>
     </div>`;
   }
   // 3rd 列标题
   const x3r_title = TREE_xFor3rd();
   const c3_title = colorMap['3rd'];
-  html += `<div style="position:absolute;left:${x3r_title}px;top:0;width:${TREE_colW}px;height:${TREE_headerH - 6}px;display:flex;align-items:center;justify-content:center;gap:8px;border-bottom:2px dashed ${c3_title};">
-    <span style="color:${c3_title};font-size:15px;font-weight:700;">季军赛</span>
+  html += `<div style="position:absolute;left:${x3r_title}px;top:0;width:${TREE_colW}px;height:${TREE_headerH - 6}px;display:flex;align-items:center;justify-content:center;gap:8px;border-bottom:1px dashed rgba(255,255,255,0.2);">
+    <span style="color:rgba(255,255,255,0.5);font-size:15px;font-weight:700;">季军赛</span>
     <span style="color:#8a96a8;font-size:11px;">1场</span>
   </div>`;
 
@@ -1004,7 +983,7 @@ function renderKnockout() {
     const yC = TREE_lineY('R16', i);
     const midX = (x1 + x2) / 2;
     const col = colorMap.R32;
-    const stroke = tint(col, 0.55);
+    const stroke = 'rgba(255,255,255,0.5)';
     html += `<path d="M${x1},${yA} L${midX},${yA} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none"/>`;
     html += `<path d="M${x1},${yB} L${midX},${yB} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none"/>`;
   }
@@ -1017,7 +996,7 @@ function renderKnockout() {
     const yC = TREE_lineY('QF', i);
     const midX = (x1 + x2) / 2;
     const col = colorMap.R16;
-    const stroke = tint(col, 0.55);
+    const stroke = 'rgba(255,255,255,0.5)';
     html += `<path d="M${x1},${yA} L${midX},${yA} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none"/>`;
     html += `<path d="M${x1},${yB} L${midX},${yB} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none"/>`;
   }
@@ -1030,7 +1009,7 @@ function renderKnockout() {
     const yC = TREE_lineY('SF', i);
     const midX = (x1 + x2) / 2;
     const col = colorMap.QF;
-    const stroke = tint(col, 0.55);
+    const stroke = 'rgba(255,255,255,0.5)';
     html += `<path d="M${x1},${yA} L${midX},${yA} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none"/>`;
     html += `<path d="M${x1},${yB} L${midX},${yB} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none"/>`;
   }
@@ -1043,7 +1022,7 @@ function renderKnockout() {
     const yC = TREE_lineY('F', 0);
     const midX = (x1 + x2) / 2;
     const col = colorMap.SF;
-    const stroke = tint(col, 0.55);
+    const stroke = 'rgba(255,255,255,0.5)';
     html += `<path d="M${x1},${yA} L${midX},${yA} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none"/>`;
     html += `<path d="M${x1},${yB} L${midX},${yB} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none"/>`;
   }
@@ -1055,7 +1034,7 @@ function renderKnockout() {
     const yB = TREE_lineY('SF', 1);
     const yC = TREE_y3rd() - TREE_padY;
     const midX = (x1 + x2) / 2;
-    const stroke = tint(colorMap['3rd'], 0.55);
+    const stroke = 'rgba(255,255,255,0.25)';
     html += `<path d="M${x1},${yA} L${midX},${yA} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none" stroke-dasharray="4 3"/>`;
     html += `<path d="M${x1},${yB} L${midX},${yB} L${midX},${yC} L${x2},${yC}" stroke="${stroke}" stroke-width="1.5" fill="none" stroke-dasharray="4 3"/>`;
   }
