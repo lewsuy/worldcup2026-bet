@@ -980,7 +980,7 @@ function renderKnockout() {
 
   // 7) SVG 连线层（在卡片之下）
   html += `<svg style="position:absolute;left:0;top:${TREE_lineOffset}px;width:${TREE_fullW}px;height:${TREE_fullH - TREE_lineOffset}px;pointer-events:none;overflow:visible;">`;
-  function TREE_lineY(round, idx) { return TREE_y(round, idx) - TREE_padY; }
+  function TREE_lineY(round, idx) { return TREE_y(round, idx) - TREE_padY - 2; }
   // R32 → R16：8 条（每个 R16 接收 2 个 R32）
   for (let i = 0; i < 8; i++) {
     const x1 = TREE_xFor('R32') + TREE_colW;
