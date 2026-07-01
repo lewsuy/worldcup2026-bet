@@ -986,7 +986,7 @@ function renderKnockout() {
   for (const c of TREE_cols) {
     const x = TREE_xFor(c.key);
     const colC = colorMap[c.key];
-    html += `<div style="position:absolute;left:${x}px;top:0;width:${TREE_colW}px;height:${TREE_headerH - 6}px;display:flex;align-items:center;justify-content:center;gap:8px;border-bottom:1px solid ${tint(colC, 0.30)};">
+    html += `<div style="position:absolute;left:${x}px;top:0;width:${TREE_colW}px;height:${TREE_headerH - 6}px;line-height:${TREE_headerH - 6}px;text-align:center;border-bottom:1px solid ${tint(colC, 0.30)};">
       <span style="color:${colC};font-size:17px;font-weight:700;">${c.name}</span>
       <span style="color:#8a96a8;font-size:11px;">${c.count}场</span>
     </div>`;
@@ -994,7 +994,7 @@ function renderKnockout() {
   // 3rd 列标题
   const x3r_title = TREE_xFor3rd();
   const c3_title = colorMap['3rd'];
-  html += `<div style="position:absolute;left:${x3r_title}px;top:0;width:${TREE_colW}px;height:${TREE_headerH - 6}px;display:flex;align-items:center;justify-content:center;gap:8px;border-bottom:1px dashed rgba(255,255,255,0.2);">
+  html += `<div style="position:absolute;left:${x3r_title}px;top:0;width:${TREE_colW}px;height:${TREE_headerH - 6}px;line-height:${TREE_headerH - 6}px;text-align:center;border-bottom:1px dashed rgba(255,255,255,0.2);">
     <span style="color:rgba(255,255,255,0.5);font-size:17px;font-weight:700;">季军赛</span>
     <span style="color:#8a96a8;font-size:11px;">1场</span>
   </div>`;
