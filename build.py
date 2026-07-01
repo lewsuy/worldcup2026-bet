@@ -994,7 +994,7 @@ function renderKnockout() {
   for (const m of KNOCKOUTS) {
     if (byRound[m.round]) byRound[m.round].push(m);
   }
-  for (const k of Object.keys(byRound)) byRound[k].sort((a,b) => a.no - b.no);
+  for (const k of Object.keys(byRound)) byRound[k].sort((a,b) => (a.bracket_pos != null ? a.bracket_pos : a.no) - (b.bracket_pos != null ? b.bracket_pos : b.no));
 
   // 2) 几何参数
   const rowH = 80;            // 每场 R32 占行高（增大以容纳 76px 卡片）
@@ -1267,17 +1267,26 @@ function renderKnockout() {
 // ==== 淘汰赛对阵自动更新（根据已结束比赛推导胜者） ====
 const _koFeederMap = {};
 function _buildKoFeederMap() {
-  const roundOrder = ['R32','R16','QF','SF','F'];
+  // R32→R16: 标准括号交叉配对（已通过 worldcup26.ir API 验证）
+  _koFeederMap[89] = [74, 77];  // 巴拉圭 vs 法国
+  _koFeederMap[90] = [73, 75];  // 加拿大 vs 摩洛哥
+  _koFeederMap[91] = [76, 78];  // 巴西 vs 挪威
+  _koFeederMap[92] = [79, 80];  // 墨西哥 vs ?
+  _koFeederMap[93] = [82, 85];  // 比利时/塞内加尔 vs 瑞士/阿尔及利亚
+  _koFeederMap[94] = [81, 83];  // 美国/波黑 vs 葡萄牙/克罗地亚
+  _koFeederMap[95] = [84, 86];  // 西班牙/奥地利 vs 阿根廷/佛得角
+  _koFeederMap[96] = [87, 88];  // 哥伦比亚/加纳 vs 澳大利亚/埃及
+  // R16→QF 及后续轮次：顺序配对
   const byRound = {};
   KNOCKOUTS.forEach(m => { (byRound[m.round] = byRound[m.round] || []).push(m); });
   Object.values(byRound).forEach(arr => arr.sort((a,b) => a.no - b.no));
-  for (let i = 1; i < roundOrder.length; i++) {
-    const prev = byRound[roundOrder[i-1]] || [];
-    const curr = byRound[roundOrder[i]] || [];
+  ['QF','SF','F'].forEach(round => {
+    const prev = round === 'QF' ? byRound['R16'] : round === 'SF' ? byRound['QF'] : byRound['SF'];
+    const curr = byRound[round] || [];
     curr.forEach((m, idx) => {
       _koFeederMap[m.no] = [prev[2*idx] ? prev[2*idx].no : null, prev[2*idx+1] ? prev[2*idx+1].no : null];
     });
-  }
+  });
   const sf = byRound['SF'] || [];
   const third = byRound['3rd'] || [];
   third.forEach(m => { _koFeederMap[m.no] = sf.length >= 2 ? [sf[0].no, sf[1].no] : [null, null]; });
