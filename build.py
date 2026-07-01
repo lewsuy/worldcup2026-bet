@@ -1089,18 +1089,17 @@ function renderKnockout() {
       border:1px solid ${borderColor};
       border-top:2px solid ${col};
       border-radius:2px;
-      padding:3px 10px;
+      padding:3px 0;
       transition:filter .15s;
       cursor:pointer;
       overflow:hidden;
-      text-align:center;
     " onmouseover="this.style.filter='brightness(1.3)'" onmouseout="this.style.filter=''">
-      <div style="font-size:16px;line-height:1.4;white-space:nowrap;">
+      <div style="padding:0 10px;font-size:16px;line-height:1.4;white-space:nowrap;text-align:center;">
         <span style="color:${colorA};font-weight:500;">${esc(_teamLabel(m.a, m.no, 'a'))}</span>
         ${scoreLine}
         <span style="color:${colorB};font-weight:500;">${esc(_teamLabel(m.b, m.no, 'b'))}</span>
       </div>
-      ${m.time ? `<div style="font-size:10px;color:rgba(255,255,255,0.35);line-height:1.3;">${esc(m.time)}</div>` : ''}
+      ${m.time ? `<div style="padding:0 10px;font-size:10px;color:rgba(255,255,255,0.35);line-height:1.3;text-align:center;">${esc(m.time)}</div>` : ''}
     </div>`;
   }
 
