@@ -1031,6 +1031,28 @@ function renderKnockout() {
     }
   }
 
+  // 构建 feeder map：每场比赛的两个来源场次（用于把 "?" 替换为 "W73"）
+  const _feederMap = {};
+  function _buildFeeder(roundKey) {
+    const prev = {R16:'R32', QF:'R16', SF:'QF', F:'SF', '3rd':'SF'}[roundKey];
+    if (!prev || !byRound[prev]) return;
+    const prevSorted = [...byRound[prev]].sort((a,b) => a.no - b.no);
+    const currSorted = [...byRound[roundKey]].sort((a,b) => a.no - b.no);
+    currSorted.forEach((m, i) => {
+      _feederMap[m.no] = [prevSorted[2*i] ? prevSorted[2*i].no : null, prevSorted[2*i+1] ? prevSorted[2*i+1].no : null];
+    });
+  }
+  for (const r of rounds) _buildFeeder(r.key);
+  _buildFeeder('3rd');
+  function _teamLabel(name, matchNo, side) {
+    if (isPlaceholder(name)) {
+      const f = _feederMap[matchNo];
+      const src = f ? f[side === 'a' ? 0 : 1] : null;
+      return src ? ('W' + src) : '?';
+    }
+    return name;
+  }
+
 // 渲染单张卡片（横排：主队 比分 客队，轮次配色）
   function cardHtml(roundKey, m) {
     const finished = isFinished(m);
@@ -1072,14 +1094,16 @@ function renderKnockout() {
       cursor:pointer;
       overflow:hidden;
       display:flex;
+      flex-direction:column;
       align-items:center;
       justify-content:center;
     " onmouseover="this.style.filter='brightness(1.3)'" onmouseout="this.style.filter=''">
       <div style="display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1.4;white-space:nowrap;overflow:hidden;">
-        <span style="color:${colorA};font-weight:500;overflow:hidden;text-overflow:ellipsis;">${esc(m.a || '?')}</span>
+        <span style="color:${colorA};font-weight:500;overflow:hidden;text-overflow:ellipsis;">${esc(_teamLabel(m.a, m.no, 'a'))}</span>
         ${scoreLine}
-        <span style="color:${colorB};font-weight:500;overflow:hidden;text-overflow:ellipsis;">${esc(m.b || '?')}</span>
+        <span style="color:${colorB};font-weight:500;overflow:hidden;text-overflow:ellipsis;">${esc(_teamLabel(m.b, m.no, 'b'))}</span>
       </div>
+      ${m.time ? `<div style="font-size:10px;color:rgba(255,255,255,0.35);line-height:1.2;">${esc(m.time)}</div>` : ''}
     </div>`;
   }
 
@@ -1150,7 +1174,7 @@ function renderKnockout() {
     const x = TREE_xFor(c.key);
     const colC = colorMap[c.key];
     html += `<div style="position:absolute;left:${x}px;top:0;width:${TREE_colW}px;height:${TREE_headerH - 6}px;display:flex;align-items:center;justify-content:center;gap:8px;border-bottom:1px solid ${tint(colC, 0.30)};">
-      <span style="color:${colC};font-size:15px;font-weight:700;">${c.name}</span>
+      <span style="color:${colC};font-size:17px;font-weight:700;">${c.name}</span>
       <span style="color:#8a96a8;font-size:11px;">${c.count}场</span>
     </div>`;
   }
@@ -1158,7 +1182,7 @@ function renderKnockout() {
   const x3r_title = TREE_xFor3rd();
   const c3_title = colorMap['3rd'];
   html += `<div style="position:absolute;left:${x3r_title}px;top:0;width:${TREE_colW}px;height:${TREE_headerH - 6}px;display:flex;align-items:center;justify-content:center;gap:8px;border-bottom:1px dashed rgba(255,255,255,0.2);">
-    <span style="color:rgba(255,255,255,0.5);font-size:15px;font-weight:700;">季军赛</span>
+    <span style="color:rgba(255,255,255,0.5);font-size:17px;font-weight:700;">季军赛</span>
     <span style="color:#8a96a8;font-size:11px;">1场</span>
   </div>`;
 
