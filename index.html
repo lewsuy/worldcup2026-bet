@@ -1246,6 +1246,13 @@ async function fetchLiveData(manual) {
         if (local.away_score !== ag.away_score) { local.away_score = ag.away_score; updated++; }
         local.finished = ag.finished;
         local.time_elapsed = ag.time_elapsed;
+        // 更新淘汰赛队伍ID（API预填对阵信息）
+        if (ag.home_team_id && ag.home_team_id !== '0') local.home_team_id = ag.home_team_id;
+        if (ag.away_team_id && ag.away_team_id !== '0') local.away_team_id = ag.away_team_id;
+        if (ag.home_team_name_en) local.home_team_name_en = ag.home_team_name_en;
+        if (ag.away_team_name_en) local.away_team_name_en = ag.away_team_name_en;
+        // 更新点球比分
+        if (ag.home_penalty != null && ag.home_penalty !== '') { local.home_penalty = ag.home_penalty; local.away_penalty = ag.away_penalty; }
       }
     });
     // 更新 liveIndicator
