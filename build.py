@@ -1051,7 +1051,7 @@ function renderKnockout() {
       const ha = g.home_score != null ? g.home_score : '';
       const aa = g.away_score != null ? g.away_score : '';
       let penaltyInfo = '';
-      if (g.home_penalty) {
+      if (g.home_penalty != null && g.home_penalty !== '' && g.home_penalty !== 'null' && !isNaN(g.home_penalty)) {
         penaltyInfo = ` <span style="font-size:10px;color:rgba(255,255,255,0.5);">(${g.home_penalty}:${g.away_penalty})</span>`;
       }
       scoreLine = `<span style="color:#fff;font-weight:700;margin:0 6px;">${ha}:${aa}${penaltyInfo}</span>`;
@@ -1442,7 +1442,7 @@ function renderGames() {
       ? (() => {
           let main = `${g.home_score} - ${g.away_score}`;
           let extra = '';
-          if (g.home_penalty) {
+          if (g.home_penalty != null && g.home_penalty !== '' && g.home_penalty !== 'null' && !isNaN(g.home_penalty)) {
             extra = `<div style="font-size:12px;color:#ffd700;margin-top:2px">点球 ${g.home_penalty} - ${g.away_penalty}</div>`;
           } else if (g.home_bigscore && g.home_bigscore !== g.home_score) {
             extra = `<div style="font-size:12px;color:#ffd700;margin-top:2px">总比分 ${g.home_bigscore} - ${g.away_bigscore}</div>`;
