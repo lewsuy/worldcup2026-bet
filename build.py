@@ -373,7 +373,7 @@ tr.top3best .pts-cell { color: #2ecc71; }
     <div class="knockout-legend" style="margin-bottom:14px;display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:#8a96a8;">
       <span><span style="display:inline-block;width:14px;height:14px;background:rgba(59,130,246,0.10);border:1px solid rgba(59,130,246,0.55);border-radius:3px;vertical-align:middle"></span> 1/16 蓝</span>
       <span><span style="display:inline-block;width:14px;height:14px;background:rgba(139,92,246,0.10);border:1px solid rgba(139,92,246,0.55);border-radius:3px;vertical-align:middle"></span> 1/8 紫</span>
-      <span><span style="display:inline-block;width:14px;height:14px;background:rgba(236,72,153,0.10);border:1px solid rgba(236,72,153,0.55);border-radius:3px;vertical-align:middle"></span> 1/4 粉</span>
+      <span><span style="display:inline-block;width:14px;height:14px;background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.55);border-radius:3px;vertical-align:middle"></span> 1/4 红</span>
       <span><span style="display:inline-block;width:14px;height:14px;background:rgba(245,158,11,0.10);border:1px solid rgba(245,158,11,0.55);border-radius:3px;vertical-align:middle"></span> 半决赛 橙</span>
       <span><span style="display:inline-block;width:14px;height:14px;background:rgba(251,191,36,0.10);border:1px solid rgba(251,191,36,0.55);border-radius:3px;vertical-align:middle"></span> 决赛 金</span>
       <span><span style="display:inline-block;width:14px;height:14px;background:rgba(148,163,184,0.10);border:1px solid rgba(148,163,184,0.55);border-radius:3px;vertical-align:middle"></span> 季军赛 灰</span>
@@ -960,7 +960,7 @@ function renderKnockout() {
   const colorMap = {
     R32: '#3b82f6',  // 蓝 1/16
     R16: '#8b5cf6',  // 紫 1/8
-    QF:  '#ec4899',  // 粉 1/4
+    QF:  '#ef4444',  // 红 1/4
     SF:  '#f59e0b',  // 橙 半决赛
     F:   '#fbbf24',  // 金 决赛
     '3rd':'#94a3b8', // 灰 季军赛
@@ -1145,8 +1145,8 @@ function renderKnockout() {
   for (const c of TREE_cols) {
     const x = TREE_xFor(c.key);
     const colC = colorMap[c.key];
-    html += `<div style="position:absolute;left:${x}px;top:0;width:${TREE_colW}px;height:${TREE_headerH - 6}px;display:flex;align-items:center;justify-content:center;gap:8px;border-bottom:1px solid rgba(255,255,255,0.2);">
-      <span style="color:rgba(255,255,255,0.7);font-size:15px;font-weight:700;">${c.name}</span>
+    html += `<div style="position:absolute;left:${x}px;top:0;width:${TREE_colW}px;height:${TREE_headerH - 6}px;display:flex;align-items:center;justify-content:center;gap:8px;border-bottom:1px solid ${tint(colC, 0.30)};">
+      <span style="color:${colC};font-size:15px;font-weight:700;">${c.name}</span>
       <span style="color:#8a96a8;font-size:11px;">${c.count}场</span>
     </div>`;
   }
