@@ -1093,18 +1093,14 @@ function renderKnockout() {
       transition:filter .15s;
       cursor:pointer;
       overflow:hidden;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap:2px;
+      text-align:center;
     " onmouseover="this.style.filter='brightness(1.3)'" onmouseout="this.style.filter=''">
-      <div style="display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1.4;white-space:nowrap;overflow:hidden;">
-        <span style="color:${colorA};font-weight:500;overflow:hidden;text-overflow:ellipsis;">${esc(_teamLabel(m.a, m.no, 'a'))}</span>
+      <div style="font-size:16px;line-height:1.4;white-space:nowrap;">
+        <span style="color:${colorA};font-weight:500;">${esc(_teamLabel(m.a, m.no, 'a'))}</span>
         ${scoreLine}
-        <span style="color:${colorB};font-weight:500;overflow:hidden;text-overflow:ellipsis;">${esc(_teamLabel(m.b, m.no, 'b'))}</span>
+        <span style="color:${colorB};font-weight:500;">${esc(_teamLabel(m.b, m.no, 'b'))}</span>
       </div>
-      ${m.time ? `<div style="font-size:10px;color:rgba(255,255,255,0.35);line-height:1.2;">${esc(m.time)}</div>` : ''}
+      ${m.time ? `<div style="font-size:10px;color:rgba(255,255,255,0.35);line-height:1.3;">${esc(m.time)}</div>` : ''}
     </div>`;
   }
 
