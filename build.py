@@ -1320,6 +1320,13 @@ function _getLoser(game) {
   if (as > hs) return _koTeamName(game.home_team_id);
   return null;
 }
+// 全局 isPlaceholder（renderKnockout 内部也有同名函数，此处给 updateKnockoutTeams 用）
+function _isPlaceholder(s) {
+  if (!s || s === '?') return true;
+  if (/^W\d+|^L\d+/.test(s)) return true;
+  if (/^[A-L]组(首名|次名|第三名)|^第三名[A-Z/]+$/.test(s)) return true;
+  return false;
+}
 function updateKnockoutTeams() {
   const koGames = {};
   GAMES.forEach(g => { if (g.type === 'knockout' || (g.type && g.type.toLowerCase().includes('knock'))) koGames[g.no || g.id] = g; });
@@ -1330,7 +1337,7 @@ function updateKnockoutTeams() {
     if (m.round === '3rd') {
       [0, 1].forEach(i => {
         const side = i === 0 ? 'a' : 'b';
-        if (isPlaceholder(m[side])) {
+        if (_isPlaceholder(m[side])) {
           const loser = _getLoser(koGames[feeders[i]]);
           if (loser) { m[side] = loser; changed = true; }
         }
@@ -1339,7 +1346,7 @@ function updateKnockoutTeams() {
     }
     [0, 1].forEach(i => {
       const side = i === 0 ? 'a' : 'b';
-      if (isPlaceholder(m[side])) {
+      if (_isPlaceholder(m[side])) {
         const winner = _getWinner(koGames[feeders[i]]);
         if (winner) { m[side] = winner; changed = true; }
       }
