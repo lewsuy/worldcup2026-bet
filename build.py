@@ -1062,16 +1062,20 @@ function renderKnockout() {
     }
 
     return `<div class="ko-card" data-no="${m.no}" style="
+      box-sizing:border-box;
       background:${bgColor};
       border:1px solid ${borderColor};
       border-top:2px solid ${col};
       border-radius:2px;
-      padding:6px 10px;
+      padding:4px 10px;
       transition:filter .15s;
       cursor:pointer;
       overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
     " onmouseover="this.style.filter='brightness(1.3)'" onmouseout="this.style.filter=''">
-      <div style="display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1.8;white-space:nowrap;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1.5;white-space:nowrap;overflow:hidden;">
         <span style="color:${colorA};font-weight:500;overflow:hidden;text-overflow:ellipsis;">${esc(m.a || '?')}</span>
         ${scoreLine}
         <span style="color:${colorB};font-weight:500;overflow:hidden;text-overflow:ellipsis;">${esc(m.b || '?')}</span>
@@ -1105,12 +1109,12 @@ function renderKnockout() {
   // 5) 渲染 5 列树状对阵图 + 季军赛
   // 布局：6 列水平 + SVG 连线 + 无横向滚动（适配视口宽度，浏览器原生纵向滚动）
   // 视口 ≈ 1400px → 5 主列 + 1 季军列 + 边距
-  const TREE_rowH   = 55;   // 每场 R32 占行高（增大以容纳卡片）
+  const TREE_rowH   = 52;   // 每场 R32 占行高（紧凑间距）
   const TREE_colW   = 220;  // 比赛节点宽（增大避免文字截断）
   const TREE_colGap = 16;   // 列间距（增大让连线更清晰）
   const TREE_padX   = 10;   // 横向边距
   const TREE_padY   = 50;   // 顶部留出标题
-  const TREE_nodeH  = 72;   // 节点高（紧凑）
+  const TREE_nodeH  = 48;   // 节点高（14px字号+4px padding×2=48）
   const TREE_headerH= 50;   // 轮次标题高
 
   // y 坐标：2 场汇合到中间（树状错开）
