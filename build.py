@@ -1174,13 +1174,6 @@ function renderKnockout() {
       <span style="color:#8a96a8;font-size:11px;">${c.count}场</span>
     </div>`;
   }
-  // 3rd 列标题
-  const x3r_title = TREE_xFor3rd();
-  const c3_title = colorMap['3rd'];
-  html += `<div style="position:absolute;left:${x3r_title}px;top:0;width:${TREE_colW}px;height:${TREE_headerH - 6}px;line-height:${TREE_headerH - 6}px;text-align:center;border-bottom:1px dashed rgba(255,255,255,0.2);">
-    <span style="color:rgba(255,255,255,0.5);font-size:17px;font-weight:700;">季军赛</span>
-    <span style="color:#8a96a8;font-size:11px;">1场</span>
-  </div>`;
 
   // 7) SVG 连线层（在卡片之下）
   html += `<svg style="position:absolute;left:0;top:${TREE_lineOffset}px;width:${TREE_fullW}px;height:${TREE_fullH - TREE_lineOffset}px;pointer-events:none;overflow:visible;">`;
