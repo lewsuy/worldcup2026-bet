@@ -779,7 +779,7 @@ function switchTab(name) {
   document.getElementById('tab-' + name).style.display = 'block';
   if (name === 'groups') { recalcGroupsFromGames(); renderGroups(); }
   if (name === 'games') renderGames();
-  if (name === 'knockout') renderKnockout();
+  if (name === 'knockout') { updateKnockoutTeams(); renderKnockout(); }
   if (name === 'slip') renderSlip();
   if (name === 'history') renderHistory();
   if (name === 'settled') renderSettled();
@@ -1271,6 +1271,83 @@ function renderKnockout() {
   container.innerHTML = html;
 }
 
+// ==== 淘汰赛对阵自动更新（根据已结束比赛推导胜者） ====
+const _koFeederMap = {};
+function _buildKoFeederMap() {
+  const roundOrder = ['R32','R16','QF','SF','F'];
+  const byRound = {};
+  KNOCKOUTS.forEach(m => { (byRound[m.round] = byRound[m.round] || []).push(m); });
+  Object.values(byRound).forEach(arr => arr.sort((a,b) => a.no - b.no));
+  for (let i = 1; i < roundOrder.length; i++) {
+    const prev = byRound[roundOrder[i-1]] || [];
+    const curr = byRound[roundOrder[i]] || [];
+    curr.forEach((m, idx) => {
+      _koFeederMap[m.no] = [prev[2*idx] ? prev[2*idx].no : null, prev[2*idx+1] ? prev[2*idx+1].no : null];
+    });
+  }
+  const sf = byRound['SF'] || [];
+  const third = byRound['3rd'] || [];
+  third.forEach(m => { _koFeederMap[m.no] = sf.length >= 2 ? [sf[0].no, sf[1].no] : [null, null]; });
+}
+_buildKoFeederMap();
+
+function _koTeamName(teamId) {
+  if (!teamId || teamId === '0') return null;
+  const t = teamMap[teamId];
+  return t ? (t.name_cn || t.name_en) : null;
+}
+function _getWinner(game) {
+  if (!game) return null;
+  const fin = game.finished === 'TRUE' || game.finished === 'true' || game.finished === true;
+  if (!fin) return null;
+  const hs = parseInt(game.home_score), as = parseInt(game.away_score);
+  if (isNaN(hs) || isNaN(as)) return null;
+  const hp = parseInt(game.home_penalty), ap = parseInt(game.away_penalty);
+  if (!isNaN(hp) && !isNaN(ap)) return hp > ap ? _koTeamName(game.home_team_id) : _koTeamName(game.away_team_id);
+  if (hs > as) return _koTeamName(game.home_team_id);
+  if (as > hs) return _koTeamName(game.away_team_id);
+  return null;
+}
+function _getLoser(game) {
+  if (!game) return null;
+  const fin = game.finished === 'TRUE' || game.finished === 'true' || game.finished === true;
+  if (!fin) return null;
+  const hs = parseInt(game.home_score), as = parseInt(game.away_score);
+  if (isNaN(hs) || isNaN(as)) return null;
+  const hp = parseInt(game.home_penalty), ap = parseInt(game.away_penalty);
+  if (!isNaN(hp) && !isNaN(ap)) return hp > ap ? _koTeamName(game.away_team_id) : _koTeamName(game.home_team_id);
+  if (hs > as) return _koTeamName(game.away_team_id);
+  if (as > hs) return _koTeamName(game.home_team_id);
+  return null;
+}
+function updateKnockoutTeams() {
+  const koGames = {};
+  GAMES.forEach(g => { if (g.type === 'knockout' || (g.type && g.type.toLowerCase().includes('knock'))) koGames[g.no || g.id] = g; });
+  let changed = false;
+  KNOCKOUTS.forEach(m => {
+    const feeders = _koFeederMap[m.no];
+    if (!feeders) return;
+    if (m.round === '3rd') {
+      [0, 1].forEach(i => {
+        const side = i === 0 ? 'a' : 'b';
+        if (isPlaceholder(m[side])) {
+          const loser = _getLoser(koGames[feeders[i]]);
+          if (loser) { m[side] = loser; changed = true; }
+        }
+      });
+      return;
+    }
+    [0, 1].forEach(i => {
+      const side = i === 0 ? 'a' : 'b';
+      if (isPlaceholder(m[side])) {
+        const winner = _getWinner(koGames[feeders[i]]);
+        if (winner) { m[side] = winner; changed = true; }
+      }
+    });
+  });
+  return changed;
+}
+
 // ==== 实时数据拉取 ====
 const LIVE_API = 'https://worldcup26.ir/get/games';
 let _liveTimer = null;
@@ -1357,6 +1434,8 @@ async function fetchLiveData(manual) {
     // 拉取完实时比分后，按已结束的小组赛重算积分，并刷新 groups tab
     recalcGroupsFromGames();
     if (document.getElementById('tab-groups').style.display !== 'none') renderGroups();
+    // 淘汰赛：根据已结束比赛推导胜者，更新对阵节点
+    if (updateKnockoutTeams() && document.getElementById('tab-knockout').style.display !== 'none') renderKnockout();
     if (manual) {
       const ts = new Date().toLocaleTimeString('zh-CN', { hour12: false });
       btn.textContent = `✓ 已更新 ${ts}`;
