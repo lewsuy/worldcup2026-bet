@@ -1147,6 +1147,13 @@ function updateKnockoutTeams() {
       [0, 1].forEach(i => {
         const side = i === 0 ? 'a' : 'b';
         if (_isPlaceholder(m[side])) {
+          // API 可能已预填队伍（如 away_team_id=33），优先用 API 数据
+          const apiGame = koGames[m.no];
+          const apiTeamId = side === 'a' ? (apiGame && apiGame.home_team_id) : (apiGame && apiGame.away_team_id);
+          if (apiTeamId && apiTeamId !== '0' && apiTeamId !== 0) {
+            const name = _koTeamName(apiTeamId);
+            if (name) { m[side] = name; changed = true; return; }
+          }
           const loser = _getLoser(koGames[feeders[i]]);
           if (loser) { m[side] = loser; changed = true; }
         }
@@ -1156,6 +1163,13 @@ function updateKnockoutTeams() {
     [0, 1].forEach(i => {
       const side = i === 0 ? 'a' : 'b';
       if (_isPlaceholder(m[side])) {
+        // API 可能已预填队伍，优先用 API 数据
+        const apiGame = koGames[m.no];
+        const apiTeamId = side === 'a' ? (apiGame && apiGame.home_team_id) : (apiGame && apiGame.away_team_id);
+        if (apiTeamId && apiTeamId !== '0' && apiTeamId !== 0) {
+          const name = _koTeamName(apiTeamId);
+          if (name) { m[side] = name; changed = true; return; }
+        }
         const winner = _getWinner(koGames[feeders[i]]);
         if (winner) { m[side] = winner; changed = true; }
       }
