@@ -1031,17 +1031,19 @@ function renderKnockout() {
     }
   }
 
-// 渲染单张卡片（白框风格）
+// 渲染单张卡片（横排：主队 比分 客队，轮次配色）
   function cardHtml(roundKey, m) {
     const finished = isFinished(m);
     const placeholderA = isPlaceholder(m.a);
     const placeholderB = isPlaceholder(m.b);
+    const col = colorMap[roundKey] || '#fff';
+    const colT = tint(col, 0.55);
+    const colBg = tint(col, 0.08);
 
-    let borderColor = finished ? 'rgba(255,255,255,0.9)' : placeholderA && placeholderB ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.6)';
-    let bgColor = finished ? 'rgba(255,255,255,0.06)' : 'transparent';
-
-    const colorA = placeholderA ? 'rgba(255,255,255,0.25)' : '#fff';
-    const colorB = placeholderB ? 'rgba(255,255,255,0.25)' : '#fff';
+    let borderColor = finished ? col : placeholderA && placeholderB ? 'rgba(255,255,255,0.15)' : colT;
+    let bgColor = finished ? colBg : 'transparent';
+    const colorA = placeholderA ? 'rgba(255,255,255,0.25)' : col;
+    const colorB = placeholderB ? 'rgba(255,255,255,0.25)' : col;
 
     let scoreLine = '';
     if (finished && koGames[m.no]) {
@@ -1050,27 +1052,28 @@ function renderKnockout() {
       const aa = g.away_score != null ? g.away_score : '';
       let penaltyInfo = '';
       if (g.home_penalty) {
-        penaltyInfo = `<span style="font-size:10px;color:rgba(255,255,255,0.5);margin-left:4px;">(${g.home_penalty}:${g.away_penalty})</span>`;
+        penaltyInfo = ` <span style="font-size:10px;color:rgba(255,255,255,0.5);">(${g.home_penalty}:${g.away_penalty})</span>`;
       }
-      scoreLine = `<span style="color:#fff;font-size:14px;font-weight:700;margin-left:auto;">${ha}:${aa}${penaltyInfo}</span>`;
+      scoreLine = `<span style="color:#fff;font-weight:700;margin:0 6px;">${ha}:${aa}${penaltyInfo}</span>`;
     } else if (!placeholderA && !placeholderB) {
-      scoreLine = '<span style="color:rgba(255,255,255,0.4);font-size:12px;margin-left:auto;">VS</span>';
+      scoreLine = `<span style="color:rgba(255,255,255,0.4);font-size:11px;margin:0 6px;">VS</span>`;
+    } else {
+      scoreLine = '<span style="color:rgba(255,255,255,0.2);font-size:11px;margin:0 6px;">VS</span>';
     }
 
     return `<div class="ko-card" data-no="${m.no}" style="
       background:${bgColor};
       border:1px solid ${borderColor};
+      border-top:2px solid ${col};
       border-radius:2px;
       padding:6px 10px;
       transition:filter .15s;
       cursor:pointer;
       overflow:hidden;
     " onmouseover="this.style.filter='brightness(1.3)'" onmouseout="this.style.filter=''">
-      <div style="display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.5;white-space:nowrap;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1.8;white-space:nowrap;overflow:hidden;">
         <span style="color:${colorA};font-weight:500;overflow:hidden;text-overflow:ellipsis;">${esc(m.a || '?')}</span>
         ${scoreLine}
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.5;white-space:nowrap;overflow:hidden;">
         <span style="color:${colorB};font-weight:500;overflow:hidden;text-overflow:ellipsis;">${esc(m.b || '?')}</span>
       </div>
     </div>`;
