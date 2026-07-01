@@ -910,12 +910,12 @@ function renderKnockout() {
       cursor:pointer;
       overflow:hidden;
     " onmouseover="this.style.filter='brightness(1.3)'" onmouseout="this.style.filter=''">
-      <div style="padding:0 10px;font-size:16px;line-height:1.4;white-space:nowrap;text-align:center;">
+      <div style="padding:0 10px;font-size:16px;line-height:1.4;white-space:nowrap;text-align:center !important;">
         <span style="color:${colorA};font-weight:500;">${esc(_teamLabel(m.a, m.no, 'a'))}</span>
         ${scoreLine}
         <span style="color:${colorB};font-weight:500;">${esc(_teamLabel(m.b, m.no, 'b'))}</span>
       </div>
-      ${m.time ? `<div style="padding:0 10px;font-size:10px;color:rgba(255,255,255,0.35);line-height:1.3;text-align:center;">${esc(m.time)}</div>` : ''}
+      ${m.time ? `<div style="padding:0 10px;font-size:10px;color:rgba(255,255,255,0.35);line-height:1.3;text-align:center !important;">${esc(m.time)}</div>` : ''}
     </div>`;
   }
 
